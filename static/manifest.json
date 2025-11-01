@@ -1,0 +1,24 @@
+{
+  "name": "حاسبة الذهب",
+  "short_name": "الذهب",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/?utm_source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#6B5BD5",
+  "categories": ["finance", "business"],
+  "icons": [
+    { "src": "/static/icons/maskable_192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/static/icons/maskable_256.png", "sizes": "256x256", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/static/icons/maskable_384.png", "sizes": "384x384", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/static/icons/maskable_512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "المؤشر", "url": "/trend", "description": "مؤشر اتجاه أسعار الذهب" },
+    { "name": "احسب ذهبك الآن", "url": "/calculator", "description": "الحاسبة الفورية" },
+    { "name": "زكاتي", "url": "/zakat", "description": "حساب الزكاة" }
+  ]
+}

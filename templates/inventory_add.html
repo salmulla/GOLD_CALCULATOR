@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+{% block title %}إضافة قطعة ذهب{% endblock %}
+
+{% block content %}
+
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% if msgs %}
+    <div class="container mt-3">
+      {% for cat, msg in msgs %}
+        <div class="alert alert-{{ 'warning' if cat == 'danger' else cat }} alert-dismissible fade show" role="alert">
+          {{ msg }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div class="container py-4" dir="rtl">
+
+  <h1 class="mb-3 text-center" style="color:#2b1a5a; font-weight:800;">
+    إضافة قطعة ذهب
+  </h1>
+
+  <style>
+  #receipts-help,
+  #images-help {
+    display: block;
+    text-align: left;       /* Always keep count text on the left */
+    direction: rtl;         /* Prevent Arabic alignment override */
+    font-size: 0.875rem;
+    margin-top: 4px;
+    color: #6c757d;
+  }
+  input[type="file"] {
+  direction: ltr !important;     /* Force text to flow left-to-right */
+  text-align: left !important;   /* Keep “no files selected” on the left */
+  unicode-bidi: plaintext;       /* Prevent RTL reordering issues */
+}
+  </style>
+
+  <div class="card p-4" style="
+    border-radius:20px; background:#fff;
+    border:1px solid rgba(177,152,255,.25);
+    box-shadow:0 8px 22px rgba(110,72,220,.08), 0 2px 6px rgba(177,152,255,.15);
+    max-width:900px; margin:0 auto;
+  ">
+
+    <form method="post"
+          action="{% if mode == 'edit' %}{{ url_for('inventory_edit', item_id=item.id) }}{% else %}{{ url_for('add_inventory') }}{% endif %}"
+          enctype="multipart/form-data">
+
+      <div class="col-md-4">
+        <label class="form-label">النوع</label>
+        <select name="category" class="form-select" required>
+          <option value="raw">ذهب خام</option>
+          <option value="bar">سبيكة</option>
+          <option value="jewelry">حُلي واكسسوارات</option>
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">العيار</label>
+        <select name="karat" class="form-select">
+          <option>24</option><option>22</option><option>21</option><option>18</option>
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">الوزن (جرام)</label>
+        <input type="number" step="0.01" name="weight_g" class="form-control" required>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">سعر الشراء/جم (اختياري)</label>
+        <input type="number" step="0.01" name="price_per_g" class="form-control" placeholder="مثال: 235">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">الإجمالي المدفوع (اختياري)</label>
+        <input type="number" step="0.01" name="total_paid" class="form-control">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">تاريخ الشراء</label>
+        <input type="date" name="purchase_date" class="form-control" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">البائع/المتجر</label>
+        <input name="vendor" class="form-control" placeholder="اسم المتجر">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">مكان الحفظ</label>
+        <input name="location" class="form-control" placeholder="مثال: خزنة المنزل">
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">ملاحظات</label>
+        <textarea name="notes" rows="2" class="form-control" placeholder="تفاصيل إضافية، رقم الشهادة ..."></textarea>
+      </div>
+
+      <div class="col-md-4 d-flex align-items-center">
+        <input type="checkbox" id="zakat_exempt" name="zakat_exempt" class="form-check-input ms-2">
+        <label for="zakat_exempt" class="form-check-label">استثناء من الزكاة</label>
+      </div>
+        <div class="mb-3">
+          <label for="images" class="form-label">صور القطعة</label>
+          <input class="form-control"
+                type="file"
+                id="images"
+                name="images[]"
+                accept="image/*"
+                multiple
+                style="direction:rtl;">
+          <small id="images-help" class="text-muted">بحد أقصى 5 صور، حجم كل صورة 5MB</small>
+
+          <!-- This div will hold previews -->
+          <div id="preview-container" class="d-flex flex-wrap gap-2 mt-2"></div>
+        </div>
+
+        <div class="mb-3">
+          <label for="receipts" class="form-label">فاتورة/ إيصال</label>
+          <input class="form-control"
+                type="file"
+                id="receipts"
+                name="receipts[]"
+                accept="image/*,application/pdf"
+                multiple
+                style="direction:rtl;">
+
+          <div id="receipts-preview" class="d-flex flex-wrap gap-2 mt-2"></div>
+        </div>
+
+      <div class="col-12 d-flex gap-2 justify-content-between mt-3">
+        <a class="btn btn-light" href="{{ url_for('inventory_list') }}">رجوع</a>
+        <button class="btn" style="background:linear-gradient(135deg,#c7a144,#b89035); color:#fff; font-weight:700; border-radius:12px;">
+          حفظ القطعة
+        </button>
+      </div>
+    </form>
+
+    <div class="small text-muted mt-3">سيُحسب تاريخ الحول تلقائيًا بعد 354 يومًا من الشراء.</div>
+  </div>
+</div>
+
+
+<script>
+/** Generic multi-file accumulator with preview + remove. */
+function attachMultiPicker({ inputId, previewId, helpId, max = 5, imagesOnly = false }) {
+  const input   = document.getElementById(inputId);
+  const preview = document.getElementById(previewId);
+  const help    = document.getElementById(helpId);
+
+  let selected = []; // running selection
+
+  const sameFile = (a, b) => a.name === b.name && a.size === b.size && a.lastModified === b.lastModified;
+
+  const rebuildInputFiles = () => {
+    const dt = new DataTransfer();
+    selected.slice(0, max).forEach(f => dt.items.add(f));
+    input.files = dt.files;
+  };
+
+  const renderPreview = () => {
+    preview.innerHTML = '';
+    selected.forEach((file, idx) => {
+      const isImg = file.type.startsWith('image/');
+      const wrap = document.createElement('div');
+      wrap.style.position = 'relative';
+
+      if (isImg) {
+        const url = URL.createObjectURL(file);
+        const img = document.createElement('img');
+        img.src = url;
+        img.style.width = '90px';
+        img.style.height = '90px';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '10px';
+        img.style.border = '1px solid #ddd';
+        wrap.appendChild(img);
+        URL.revokeObjectURL(url);
+      } else {
+        // PDF badge
+        const badge = document.createElement('div');
+        badge.textContent = 'PDF';
+        badge.style.width = '90px';
+        badge.style.height = '90px';
+        badge.style.display = 'flex';
+        badge.style.alignItems = 'center';
+        badge.style.justifyContent = 'center';
+        badge.style.borderRadius = '10px';
+        badge.style.border = '1px solid #ddd';
+        badge.style.background = '#f8f9fa';
+        badge.style.fontWeight = '700';
+        badge.style.color = '#6a4bc7';
+        wrap.appendChild(badge);
+      }
+
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.textContent = '×';
+      remove.style.position = 'absolute';
+      remove.style.top = '-8px';
+      remove.style.left = '-8px';
+      remove.style.width = '24px';
+      remove.style.height = '24px';
+      remove.style.border = 'none';
+      remove.style.borderRadius = '50%';
+      remove.style.background = '#dc3545';
+      remove.style.color = '#fff';
+      remove.style.cursor = 'pointer';
+      remove.onclick = () => {
+        selected.splice(idx, 1);
+        rebuildInputFiles();
+        renderPreview();
+        help.textContent = selected.length ? `${selected.length} ملف/ملفات محددة` : `بحد أقصى ${max} ملفات، حجم كل ملف 5MB`;
+      };
+
+      wrap.appendChild(remove);
+      preview.appendChild(wrap);
+    });
+  };
+
+
+  input.addEventListener('change', (e) => {
+    const incoming = Array.from(e.target.files).filter(f => {
+      if (imagesOnly) return f.type.startsWith('image/');
+      // receipts accept images + PDFs
+      return f.type.startsWith('image/') || f.type === 'application/pdf';
+    });
+
+    for (const f of incoming) {
+      if (selected.length >= max) break;
+      if (!selected.some(x => sameFile(x, f))) selected.push(f);
+    }
+
+    if (selected.length > max) selected = selected.slice(0, max);
+
+    rebuildInputFiles();
+    renderPreview();
+    help.textContent = selected.length ? `${selected.length} ملف/ملفات محددة` : `بحد أقصى ${max} ملفات، حجم كل ملف 5MB`;
+
+  });
+}
+
+// attach for your two inputs
+attachMultiPicker({ inputId: 'images',   previewId: 'preview-container', helpId: 'images-help',   max: 5, imagesOnly: true  });
+attachMultiPicker({ inputId: 'receipts', previewId: 'receipts-preview',  helpId: 'receipts-help', max: 2, imagesOnly: false });
+</script>
+
+
+
+
+{% endblock %}

@@ -1,0 +1,61 @@
+<!-- templates/instructions.html -->
+{% extends "base.html" %}
+{% block title %}طريقة التنزيل{% endblock %}
+<body class="bg-dark">
+  <div class="app-shell">
+  <div class="app-topbar"></div>
+ 
+
+    {% block content %}
+
+      <main class="app-content">
+        <section class="app-card">
+
+          <h1 class="title-gold">حاسبة الذهب</h1>
+
+          <p class="h4 fw-bold text-center mb-3">احصل على النسخة الكاملة</p>
+          <p class="text-center muted mb-4">3 دولار أمريكي (12 درهم إماراتي تقريبًا)</p>
+
+          <h2 class="section-title">طريقــة التنزيــل:</h2>
+          <ul class="mb-3">
+            <li>
+              <h3 class="section-title-sub">إضافة إلى الشاشة الرئيسية (Add to Home Screen):</h3>
+              <ul class="mt-2">
+                <li>
+                  على <strong>iPhone</strong>: اضغط على زر المشاركة (المربع والسهم)،
+                  ثم اختر <em class="badge text-bg-secondary">إضافة للشاشة الرئيسية - Add to Home Screen</em>.
+                </li>
+                <li class="mt-2">
+                  على <strong>Android</strong>: اضغط على النقاط الثلاث، ثم اختر
+                  <em class="badge text-bg-secondary">Add to Home - إضافة للشاشة الرئيسية</em>.
+                </li>
+              </ul>
+            </li>
+          </ul>
+          <li>
+            <h3 class="section-title-sub">بعد الإضافة:</h3>
+          </li>
+          <p class="mb-3">أغلق المتصفح وافتح التطبيق من أيقونة الشاشة الرئيسية.</p>
+          <li>
+            <h3 class="section-title-sub">الدفع:</h3>
+          </li>
+          <p class="mb-4">ادفع من خلال التطبيق المُثبت وليس من هذه الصفحة.</p>
+
+          <div class="note-box mb-3">
+            📌 تعليمات مهمة: بعد إتمام الدفع، اضغط على زر <strong>“Return to Merchant”</strong> للعودة إلى التطبيق.
+          </div>
+
+          
+          <div class="full-center">
+            <a href="{{ url_for('buy') }}" class="btn-buy text-center">Buy Now</a>
+          </div>
+
+
+        </section>
+      </main>
+
+    {% endblock %}
+
+  </div>
+
+</body>

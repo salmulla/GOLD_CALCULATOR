@@ -1,0 +1,535 @@
+{% extends "base.html" %}
+{% block title %}الإعدادات{% endblock %}
+
+{% block content %}
+<div class="container py-4" dir="rtl">
+  <h2 class="mb-3 text-center fw-extrabold" style="color:#2b1a5a; font-weight:800;">مركز التحكم</h2>
+
+  <!-- Optional top ad / banner space -->
+  <div class="mb-3 rounded-3 overflow-hidden d-none d-md-block">
+    <!-- put your banner/ad here if needed -->
+  </div>
+
+  <!-- Section 1 -->
+  <!-- Brand Menu Block -->
+  <div class="brand-menu-block">
+    <a href="{{ url_for('about_app') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-grid-fill"></i></span>
+      <span class="label">عن التطبيق</span> 
+      <i class="bi bi-chevron-left caret"></i>
+    </a>
+
+    <a href="{{ url_for('how_it_works') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-question-circle-fill"></i></span>
+      <span class="label">كيف يعمل التطبيق؟</span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>
+
+    <a href="{{ url_for('disclaimer') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-exclamation-triangle-fill"></i></span>
+      <span class="label"> إخلاء المسؤولية (Disclaimer) </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>
+
+    <a href="{{ url_for('instructions') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-car-front-fill"></i></span>
+      <span class="label">الترقية / النسخة المميزة </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>
+  </div>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+  <!-- Section 2 -->
+  <div class="brand-menu-block">
+    <a href="{{ url_for('portfolio') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-wallet2"></i></span>
+      <span class="label">محفظة الذهب الخاصة بي </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>
+
+    <a href="{{ url_for('media') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-receipt"></i></span>
+      <span class="label">الفواتير والصور </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>
+
+    <a href="{{ url_for('prices_charts') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-graph-up"></i></span>
+      <span class="label">أسعار الذهب والرسوم البيانية </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>
+
+    <a href="{{ url_for('smart_calculators') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-calculator"></i></span>
+      <span class="label">الحاسبات الذكية </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>
+    
+    <a href="{{ url_for('zakat_reminder') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-moon-stars"></i></span>
+      <span class="label">تذكير الزكاة </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>    
+    
+    <a href="{{ url_for('logs') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-list-check"></i></span>
+      <span class="label">سجل العمليات الدورية </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>   
+
+    <a href="{{ url_for('notifications') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-bell"></i></span>
+      <span class="label">الإشعارات </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>            
+  </div>
+
+  <!-- Section 3 -->
+  <div class="brand-menu-block">
+    <a href="{{ url_for('settings') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-gear"></i></span>
+      <span class="label">الإعدادات العامة </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>  
+
+    <a href="{{ url_for('location') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-geo-alt"></i></span>
+      <span class="label">موقعي </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>    
+    
+    <a href="{{ url_for('export_backup') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-arrow-up"></i></span>
+      <span class="label">حفظ واسترجاع البيانات </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>   
+  </div>
+
+  <!-- Section 4 -->
+  <div class="brand-menu-block">
+    <a href="{{ url_for('investment_strategy') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-compass"></i></span>
+      <span class="label">استراتيجية الاستثمار </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>  
+
+    <a href="{{ url_for('knowledge_hub') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-journal-bookmark"></i></span>
+      <span class="label">مركز المعرفة / الأكاديمية الذهبية </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>    
+    
+    <a href="{{ url_for('goals') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-bullseye"></i></span>
+      <span class="label">أهدافي الاستثمارية </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a> 
+  </div>
+
+  <!-- Section 5 -->
+  <div class="brand-menu-block">
+    <a href="{{ url_for('rate_app') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-star-fill"></i></span>
+      <span class="label">قيّم التطبيق </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>  
+
+    <a href="{{ url_for('support') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-envelope"></i></span>
+      <span class="label">تواصل معي </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a>    
+    
+    <a href="{{ url_for('developer') }}" class="brand-menu-row">
+      <span class="icon-bubble"><i class="bi bi-person-badge"></i></span>
+      <span class="label">عن المطوّر </span>
+      <i class="bi bi-chevron-left caret"></i>
+    </a> 
+  </div>
+</div>
+
+
+
+
+
+  <!-- ===== General (عام) ===== -->
+  <section class="settings-card" data-section="general">
+    <h3 class="sec-title">عام</h3>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">اللغة</label>
+        <select class="form-select" name="lang">
+          <option value="ar" {{ 'selected' if s.ui.lang=='ar' else '' }}>العربية</option>
+          <option value="en" {{ 'selected' if s.ui.lang=='en' else '' }}>English</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">السِمة</label>
+        <select class="form-select" name="theme">
+          <option value="purple" {{ 'selected' if s.ui.theme=='purple' else '' }}>أرجواني</option>
+          <option value="gold"   {{ 'selected' if s.ui.theme=='gold'   else '' }}>ذهبي</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">الوضع الافتراضي</label>
+        <select class="form-select" name="default_mode">
+          <option value="smart"  {{ 'selected' if s.ui.default_mode=='smart'  else '' }}>الذكي</option>
+          <option value="manual" {{ 'selected' if s.ui.default_mode=='manual' else '' }}>اليدوي</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">الوحدة</label>
+        <select class="form-select" name="unit">
+          <option value="g"  {{ 'selected' if s.ui.unit=='g'  else '' }}>غرام</option>
+          <option value="oz" {{ 'selected' if s.ui.unit=='oz' else '' }}>أونصة</option>
+        </select>
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="dark_mode" name="dark_mode" {{ 'checked' if s.ui.dark else '' }}>
+          <label class="form-check-label" for="dark_mode">الوضع الداكن</label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Pricing (الأسعار) ===== -->
+  <section class="settings-card d-none" data-section="pricing">
+    <h3 class="sec-title">الأسعار</h3>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">المصدر</label>
+        <select class="form-select" name="source">
+          <option value="igold"  {{ 'selected' if s.pricing.source=='igold'  else '' }}>iGold</option>
+          <option value="manual" {{ 'selected' if s.pricing.source=='manual' else '' }}>يدوي</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">تحديث تلقائي (ث)</label>
+        <input type="number" class="form-control" name="auto_refresh_sec" value="{{ s.pricing.auto_refresh_sec or '' }}" min="0">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">ضريبة VAT</label>
+        <input type="number" step="0.0001" class="form-control" name="vat" value="{{ s.pricing.vat or '' }}" placeholder="مثال 0.05">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">رسوم السبيكة</label>
+        <input type="number" step="0.01" class="form-control" name="bar_fee" value="{{ s.pricing.bar_fee or '' }}">
+      </div>
+
+      {# اختياري: السعر اليدوي لـ 24K درهم/جم #}
+      {# <div class="col-md-4">
+        <label class="form-label">24K (AED/g) يدوي</label>
+        <input type="number" step="0.01" class="form-control" name="manual_24k_aed_per_g" value="{{ s.pricing.get('manual_24k_aed_per_g','') }}">
+      </div> #}
+    </div>
+  </section>
+
+  <!-- ===== Zakat (الزكاة) ===== -->
+  <section class="settings-card d-none" data-section="zakat">
+    <h3 class="sec-title">الزكاة</h3>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">مرجع النصاب</label>
+        <select class="form-select" name="nisab_ref">
+          <option value="gold"   {{ 'selected' if s.zakat.nisab_ref=='gold'   else '' }}>الذهب</option>
+          <option value="silver" {{ 'selected' if s.zakat.nisab_ref=='silver' else '' }}>الفضة</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">نسبة الزكاة</label>
+        <input type="number" step="0.0001" class="form-control" name="zakat_rate" value="{{ s.zakat.rate or '' }}" placeholder="مثال 0.025">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">بداية الحول</label>
+        <input type="date" class="form-control" name="hawl_start" value="{{ s.zakat.hawl_start or '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">تذكير قبل (أيام)</label>
+        <input type="number" class="form-control" name="reminder_days_before" value="{{ s.zakat.get('reminder_days_before', 15) }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">وقت التذكير</label>
+        <input type="time" class="form-control" name="reminder_time" value="{{ s.zakat.get('reminder_time', '09:00') }}">
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Notifications (الإشعارات) ===== -->
+  <section class="settings-card d-none" data-section="notify">
+    <h3 class="sec-title">الإشعارات</h3>
+    <div class="row g-3">
+      <div class="col-md-4 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="zakat_reminder" name="zakat_reminder" {{ 'checked' if s.notifications.zakat_reminder else '' }}>
+          <label class="form-check-label" for="zakat_reminder">تفعيل تذكير الزكاة</label>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">نسبة تغيّر السعر (%)</label>
+        <input type="number" step="0.01" class="form-control" name="price_change_pct" value="{{ s.notifications.price_change_pct or '' }}" placeholder="مثال 1.5">
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Support (الدعم) + زر الحفظ ===== -->
+  <section class="settings-card d-none" data-section="support">
+    <h3 class="sec-title">الدعم</h3>
+    <div class="d-flex gap-2 flex-wrap">
+      <button type="button" class="btn support-btn" onclick="shareApp()">مشاركة التطبيق</button>
+      <button type="button" class="btn support-btn" onclick="rateApp()">تقييم التطبيق</button>
+    </div>
+  </section>
+
+  <!-- زر الحفظ ثابت -->
+  <div class="text-center mt-3">
+    <button type="submit" class="btn save-btn px-4 py-2">حفظ الإعدادات</button>
+  </div>
+
+
+
+
+  <section class="settings-card settings-actions" style="margin-top:6px">
+    <div class="tiles-grid">
+
+      <a class="tile" href="{{ url_for('trend') }}">
+        <div>
+          <h4>اتجاه الأسعار</h4>
+          <p>أونصة/جرام على مدى الشهور</p>
+        </div>
+      </a>
+
+      <a class="tile" href="{{ url_for('index', mode='buy') }}">
+        <div>
+          <h4>الحاسبة الذكية</h4>
+          <p>شراء/بيع مع الضريبة والمصنعية</p>
+        </div>
+      </a>
+
+      <a class="tile" href="{{ url_for('basic_calc') }}">
+        <div>
+          <h4>الحاسبة الفورية</h4>
+          <p>أزرار سريعة + اختيار العيار</p>
+        </div>
+      </a>
+
+      <a class="tile" href="{{ url_for('zakat') }}">
+        <div>
+          <h4>زكاتي</h4>
+          <p>حسبة 2.5% + تذكير الحول</p>
+        </div>
+      </a>
+
+      <a class="tile" href="{{ url_for('inventory_list') }}">
+        <div>
+          <h4>ممتلكات الذهب</h4>
+          <p>أضف/عدّل قطعك (خام، سبائك، حُلي)</p>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+    <!-- App Info (footer outside the main card) -->
+  <div class="text-center my-5" style="color:#444;">
+    <p class="fw-bold mb-1" style="font-size:1.1rem;">GoldNeer App</p>
+    <p class="mb-0">version 1.0.0</p>
+    <p class="mb-3">
+      from <a href="https://saif.net" target="_blank" style="color:#6a4bc7; text-decoration:none;">saif.net</a>
+    </p>
+    <img 
+      src="{{ url_for('static', filename='icons/saif.png') }}" 
+      alt="Saif logo"
+      style="width:70px; border-radius:10px; margin:5px auto; display:block;"
+    >
+    <hr style="width:35%; margin:2px auto; border-color:rgba(177,152,255,.3);">
+    <p class="fst-italic" style="font-size:0.95rem; color:#555;">
+      Great things come from hard work and perseverance“<br>
+      No excuses.”  – Kobe Bryant<br>
+    </p>
+  </div>
+
+<style>
+/* ===== Brand Tokens (purple & gold) ===== */
+:root{
+  --brand-bg: #FAF8FF;           /* dark purple surface */
+  --brand-bg-2: rgba(110,72,220,0.06);      /* slightly lighter for hover */
+  --brand-text: #2B1A5A;
+  --brand-subtle: rgba(43,26,90,0.08);
+  --brand-shadow: 0 10px 30px rgba(46, 28, 97, .35);
+  --bubble-grad: linear-gradient(135deg, #6E48DC 0%, #2B1A5A 55%, #F0C94A 120%);
+  --bubble-shadow: 0 6px 16px rgba(240,201,74,.25), 0 2px 6px rgba(110,72,220,.35);
+}
+
+/* ===== Container (single block) ===== */
+.brand-menu-block{
+  background: var(--brand-bg);
+  color: var(--brand-text);
+  border: 1px solid rgba(177,152,255,0.25); 
+  margin-top: 28px;
+  border-radius: 20px;
+  padding-block: 6px;            /* tighter vertical padding, rows handle the rest */
+  box-shadow: 0 8px 22px rgba(110,72,220,0.08),
+              0 2px 6px  rgba(177,152,255,0.15);
+  overflow: hidden;               /* keeps it one card with rounded corners */
+}
+
+/* ===== Rows ===== */
+.brand-menu-row{
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 5px 18px;
+  text-decoration: none;
+  color: inherit; /* var(--brand-text); */
+  position: relative;
+  transition: background .18s ease, transform .05s ease;
+}
+
+/* subtle divider inside the single block */
+.brand-menu-row:not(:last-child)::after{
+  content:"";
+  position: absolute;
+  inset-inline: 74px 18px;       /* start after the icon bubble */
+  bottom: 0;
+  height: 1px;
+  background: var(--brand-subtle);
+}
+
+.brand-menu-row:hover{ background: var(--brand-bg-2); }
+.brand-menu-row:active{ transform: translateY(1px); }
+
+/* ===== Left icon bubble (brand gradient) ===== */
+.icon-bubble{
+  width: 44px; height: 44px; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bubble-grad);
+  box-shadow: var(--bubble-shadow);
+  flex: 0 0 44px;
+}
+
+.icon-bubble i{ font-size: 22px; color: #fff; }
+
+/* ===== Label & caret ===== */
+.label{
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: .2px;
+  /* push caret to far edge in both LTR/RTL */
+  margin-inline-start: 2px;
+}
+
+.caret{
+  margin-inline-start: auto;
+  font-size: 18px;
+  color: rgba(144, 92, 217, 0.6);
+}
+
+/* ===== Optional: nicer focus for keyboard users ===== */
+.brand-menu-row:focus-visible{
+  outline: 2px solid #F0C94A;
+  outline-offset: -2px;
+  background: var(--brand-bg-2);
+}
+
+/* Works in RTL too (no change needed). */
+
+
+
+.settings-grid { max-width: 900px; margin: 0 auto; }
+.settings-card{
+  background:#f9f8ff; border:1px solid rgba(177,152,255,.25);
+  border-radius:16px; padding:16px 18px; margin-bottom:14px;
+  box-shadow:0 6px 16px rgba(110,72,220,.08);
+}
+.sec-title{ color:#2b1a5a; font-weight:800; margin-bottom:12px; }
+.support-btn{
+  background:#eef; border:1px solid rgba(177,152,255,.35); color:#2b1a5a; font-weight:600;
+}
+.support-btn:hover{ background:#e3dcff; color:#1e1247; }
+.save-btn{
+  background: linear-gradient(135deg, #c7a144, #b89035); color:#fff; font-weight:700;
+  border:none; border-radius:12px; padding:10px 18px;
+  box-shadow:0 6px 15px rgba(183,140,43,.3);
+}
+.save-btn:hover{ transform: translateY(-2px); box-shadow:0 10px 22px rgba(183,140,43,.35); }
+
+
+/* Prkn-style tiles */
+.settings-actions { background:#fff; border-color:#eee; box-shadow:0 8px 22px rgba(0,0,0,.06); }
+
+/* One-column list for all viewports */
+.tiles-grid{
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;   /* always single column */
+  max-width: 640px;             /* optional: keep a nice reading width */
+  margin: 0 auto;               /* center the column */
+}
+/* Remove/override previous media queries if present */
+@media (min-width: 576px){ .tiles-grid{ grid-template-columns: 1fr !important; } }
+@media (min-width: 992px){ .tiles-grid{ grid-template-columns: 1fr !important; } }
+
+
+.tile{
+  display:flex; align-items:center; gap:12px;
+  background:#fff; border:1px solid #eee; border-radius:16px;
+  padding:14px 16px; text-decoration:none;
+  color:#2b1a5a; transition:transform .06s ease, box-shadow .2s, border-color .2s;
+}
+.tile:hover{ box-shadow:0 10px 26px rgba(0,0,0,.08); border-color:#e6e0ff; }
+.tile:active{ transform:scale(.985); }
+
+.tile h4{ margin:0; font-size:15px; font-weight:800; }
+.tile p{ margin:0; font-size:12px; color:#6b6b85; }
+
+.ic{
+  width:42px; height:42px; border-radius:12px; display:grid; place-items:center;
+  background:linear-gradient(135deg,#c7a144,#b89035); color:#fff; font-size:20px;
+  box-shadow:0 6px 16px rgba(199,161,68,.35);
+}
+
+</style>
+
+<script>
+  // Mirror settings in localStorage for instant client-side defaults
+  (function(){
+    const form = document.getElementById('settingsForm');
+    const keys = ["lang","theme","default_mode","unit","dark_mode",
+                  "source","auto_refresh_sec","vat","bar_fee",
+                  "nisab_ref","zakat_rate","hawl_start","zakat_reminder","price_change_pct"];
+
+    // Load from localStorage into fields if present (non-destructive)
+    keys.forEach(k=>{
+      const el = form.querySelector(`[name="${k}"]`);
+      if(!el) return;
+      const v = localStorage.getItem("goldapp:"+k);
+      if(v===null) return;
+      if(el.type==="checkbox") el.checked = (v==="on" || v==="true");
+      else el.value = v;
+    });
+
+    // On submit, save to localStorage too
+    form.addEventListener("submit", ()=>{
+      keys.forEach(k=>{
+        const el = form.querySelector(`[name="${k}"]`);
+        if(!el) return;
+        const val = (el.type==="checkbox") ? (el.checked ? "on" : "off") : el.value;
+        localStorage.setItem("goldapp:"+k, val);
+      });
+    });
+  })();
+
+  // Share / Rate placeholders
+  function shareApp(){
+    const url = window.location.origin;
+    if (navigator.share){
+      navigator.share({title:"حاسبة الذهب الذكية", text:"جرّب حاسبة الذهب والزكاة", url});
+    } else {
+      prompt("انسخ رابط التطبيق:", url);
+    }
+  }
+  function rateApp(){ alert("ضع هنا رابط التقييم في المتجر أو صفحة التغذية الراجعة."); }
+</script>
+
+{% endblock %}

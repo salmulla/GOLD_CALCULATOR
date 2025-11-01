@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}حاسبة الذهب الذكية
+{% endblock %}
+{% block content %}
+  <!-- paste the page body you already have (starting from the <h1> … to the end of the results card) -->
+  <h1 class="mb-3 text-center" style="color: #b0861a; font-weight: bold;">
+      حاسبة الذهب الذكية
+    </h1>
+
+<style>
+.smart-btn {
+  background: linear-gradient(135deg, #c7a144, #b89035);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 0;
+  letter-spacing: 0.5px;
+  box-shadow: 0 6px 15px rgba(180, 140, 40, 0.3);
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+/* animated shine effect */
+.smart-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(120deg, rgba(255,255,255,0.3), rgba(255,255,255,0));
+  transform: skewX(-25deg);
+  transition: 0.7s;
+}
+
+.smart-btn:hover::before {
+  left: 125%;
+}
+
+.smart-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(183, 140, 43, 0.35);
+}
+
+.smart-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 4px 10px rgba(183, 140, 43, 0.3);
+}
+</style>
+
+    <form method="post" class="card p-3 shadow-sm">
+      <input type="hidden" name="current_mode" value="{{ mode }}">
+
+      <div class="toggle-wrap mb-3">
+        <button name="mode" value="buy" type="submit" formnovalidate
+                class="btn btn-gold-solid {{ 'is-active' if mode=='buy' else '' }}">
+          شراء الذهب
+        </button>
+
+        <button name="mode" value="sell" type="submit" formnovalidate
+                class="btn btn-gold-solid {{ 'is-active' if mode=='sell' else '' }}">
+          بيع الذهب
+        </button>
+      </div>
+
+
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">الوزن بالجرام:</label>
+          <input name="weight" type="number" step="0.01" class="form-control"  value="{{ values.weight }}" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">سعر الجرام اليوم:</label>
+          <input name="price_per_g" type="number" step="0.01" class="form-control"  value="{{ values.price_per_g }}" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">معامل العيار :</label>
+          <select id="karat_factor" name="karat_factor" class="form-control">
+            <option value="1.0"    {{ 'selected' if values.karat_factor == '1.0'    else '' }}>عيار 24 (1.0)</option>
+            <option value="0.9167" {{ 'selected' if values.karat_factor == '0.9167' else '' }}>عيار 22 (0.9167)</option>
+            <option value="0.875"  {{ 'selected' if values.karat_factor == '0.875'  else '' }}>عيار 21 (0.875)</option>
+            <option value="0.75"   {{ 'selected' if values.karat_factor == '0.75'   else '' }}>عيار 18 (0.75)</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">السعر المعروض (الإجمالي):</label>
+          <input name="offered_total" type="number" step="0.01" class="form-control" value="{{ values.offered_total }}" required>
+        </div>
+
+        {% if mode == 'buy' %}
+        <div class="col-md-3">
+          <label class="form-label">الضريبة (VAT)</label>
+          <input name="vat" type="number" step="0.0001" class="form-control" value="{{ defaults.vat }}">
+        </div>
+        {% else %}
+        <div class="col-md-3">
+          <label class="form-label">هامش شراء المحل (درهم/جم)</label>
+          <input name="margin_per_g" type="number" step="0.01" class="form-control" value="{{ defaults.margin_per_g }}">
+        </div>
+        {% endif %}
+
+      </div>
+
+      <!-- Submit button -->
+      <button type="submit" class="btn w-100 mt-3 smart-btn">
+        احسب
+      </button>
+
+    </form>
+
+    {% if result %}
+    <div class="card mt-4 p-3 shadow-sm">
+      <h4 class="mb-3">النتائج</h4>
+      {% if result.mode == 'buy' %}
+        <p>سعر الذهب بدون الضريبة: {{ '%.2f'|format(result.gold_value) }}</p>
+        <p>قيمة الضريبة: {{ '%.2f'|format(result.vat_value) }}</p>
+        <p><strong>سعر الذهب مع الضريبة ({{ (defaults.vat*100)|int }}%): {{ '%.2f'|format(result.fair_price) }}</strong></p>
+        <p>السعر المعروض: {{ '%.2f'|format(result.offered_total) }} </p>
+        <p>ربح البائع المقدر: {{ '%.1f'|format(result.seller_profit) }} ({{ '%.2f'|format(result.profit_pct*100) }}%)</p>
+        <p>سعر التصنيع للجرام: {{ '%.2f'|format(result.making_fee_per_g) }}</p>
+      {% else %}
+        <p>القيمة الفعلية للذهب: {{ '%.2f'|format(result.gold_value) }}</p>
+        <p><strong>السعر العادل لشراء التاجر منك: {{ '%.2f'|format(result.fair_price) }}</strong></p>
+        <p>السعر المعروض: {{ '%.2f'|format(result.offered_total) }} </p>
+        <p>الفرق: {{ '%.2f'|format(result.diff) }}</p>
+      {% endif %}
+
+      {% if result.advice %}
+        <div class="alert alert-{{ result.advice.type }} mt-2">
+          {{ result.advice.text }}
+        </div>
+      {% endif %}
+
+    </div>
+    {% endif %}
+  </div>
+{% endblock %}

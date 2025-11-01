@@ -1,0 +1,677 @@
+{% extends "base.html" %}
+{% block title %}تفاصيل القطعة{% endblock %}
+
+{% block content %}
+<div class="container py-4" dir="rtl">
+  <h1 class="mb-3 text-center" style="color:#2b1a5a; font-weight:800;">تفاصيل القطعة</h1>
+
+  <div class="card p-4" style="border-radius:20px;background:#fff;border:1px solid rgba(177,152,255,.25);
+       box-shadow:0 8px 22px rgba(110,72,220,.08),0 2px 6px rgba(177,152,255,.15);max-width:900px;margin:0 auto;">
+
+    <!-- Top metadata -->
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="mb-2 text-muted">النوع</div>
+        <div class="fw-bold">
+          {% if item.category=='raw' %}ذهب خام
+          {% elif item.category=='bar' %}سبيكة
+          {% elif item.category=='jewelry' %}حُلي
+          {% else %}أخرى{% endif %}
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="mb-2 text-muted">العيار</div>
+        <div class="fw-bold">{{ item.karat or '—' }}</div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="mb-2 text-muted">الوزن (جم)</div>
+        <div class="fw-bold">
+          {% if item.weight_g is not none %}
+            {{ '%.3f'|format(item.weight_g) }}
+          {% else %} — {% endif %}
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="mb-2 text-muted">القيمة المدفوعة (درهم)</div>
+        <div class="fw-bold">
+          {% if item.total_paid is not none %}
+            {{ '%.2f'|format(item.total_paid) }}
+          {% elif item.price_per_g and item.weight_g %}
+            {{ '%.2f'|format(item.weight_g * item.price_per_g) }}
+          {% else %} — {% endif %}
+        </div>
+        {% if item.price_per_g and item.weight_g %}
+          <div class="small text-muted">({{ '%.2f'|format(item.price_per_g) }} درهم/جم)</div>
+        {% endif %}
+      </div>
+
+      <div class="col-md-6">
+        <div class="mb-2 text-muted">تاريخ الشراء</div>
+        <div class="fw-bold">
+          {{ item.purchase_date.strftime('%Y-%m-%d') if item.purchase_date else '—' }}
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="mb-2 text-muted">تاريخ الحول</div>
+        <div class="fw-bold">
+          {{ item.hawl_date.strftime('%Y-%m-%d') if item.hawl_date else '—' }}
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="mb-2 text-muted">المتجر</div>
+        <div class="fw-bold">{{ item.vendor or '—' }}</div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="mb-2 text-muted">مكان الحفظ</div>
+        <div class="fw-bold">{{ item.location or '—' }}</div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="mb-2 text-muted">ملاحظات</div>
+        <div class="fw-bold">{{ item.notes or '—' }}</div>
+      </div>
+
+      <hr class="my-4" style="border-color:rgba(0,0,0,0.06)">
+
+       <!-- Images & Receipts columns -->
+      {% set _imgs = (item.image_path or '')|trim %}
+      {% set image_files = _imgs and _imgs.split(',') or [] %}
+      {% set image_files = image_files | map('trim') | reject('equalto','') | list %}
+
+      {% set _rcpts = (item.receipt_path or '')|trim %}
+      {% set receipt_files = _rcpts and _rcpts.split(',') or [] %}
+      {% set receipt_files = receipt_files | map('trim') | reject('equalto','') | list %}
+
+
+      {% set images = image_files %}
+
+      <div class="row g-4">
+        <!-- Images -->
+        <div class="col-md-6">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-2 text-muted">صور القطعة</h6>
+            {% if image_files %}
+            <button class="btn btn-sm btn-light"
+                    type="button"
+                    style="border: 1px solid #9c9c9c;   /* custom border color */"
+                    data-bs-toggle="modal"
+                    data-bs-target="#imagesModal-{{ item.id }}"
+                    data-open-images
+                    data-idx="0">
+              عرض الصور
+            </button>
+
+            {% endif %}
+          </div>
+
+          {% if image_files %}
+          <div class="row g-2">
+            {% for img in image_files %}
+            <div class="col-6 col-lg-4">
+              <button type="button"
+                      class="d-block w-100 p-0 border-0 bg-transparent"
+                      style="border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid rgba(0,0,0,0.06);"
+                      data-bs-toggle="modal"
+                      data-bs-target="#imagesModal-{{ item.id }}"
+                      data-open-images
+                      data-idx="{{ loop.index0 }}">
+                <img src="{{ url_for('uploaded_file', filename=img) }}"
+                    alt="image"
+                    style="width:100%;height:140px;object-fit:cover;display:block;">
+              </button>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center text-muted p-4" style="border:1px dashed rgba(0,0,0,0.12);border-radius:12px;">
+            — لا توجد صور مرفوعة لهذه القطعة —
+          </div>
+          {% endif %}
+        </div>
+  
+
+        <!-- Receipts -->
+        <div class="col-md-6">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-2 text-muted">الإيصال / الفاتورة</h6>
+            {% if receipt_files %}
+            <button
+              class="btn btn-sm btn-light" 
+              style="border: 1px solid #9c9c9c;   /* custom border color */"
+              data-bs-toggle="modal"
+              data-bs-target="#receiptsCarouselModal-{{ item.id }}">
+              عرض المرفقات
+            </button>
+            
+            {% endif %}
+          </div>
+
+          {% if receipt_files %}
+            <div class="list-group small">
+              {% for r in receipt_files %}
+                {% set lower = r|lower %}
+                {% if lower[-4:] == '.pdf' %}
+                  <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    href="{{ url_for('uploaded_file', filename=r) }}"
+                    target="_blank" rel="noopener">
+                    <span class="text-truncate" style="max-width:70%;">{{ r }}</span>
+                    <span class="badge bg-secondary">PDF</span>
+                  </a>
+                {% else %}
+                  <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    href="{{ url_for('uploaded_file', filename=r) }}"
+                    target="_blank" rel="noopener">
+                    <span class="text-truncate" style="max-width:70%;">{{ r }}</span>
+                    <span class="badge bg-info">IMAGE</span>
+                  </a>
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center text-muted p-4" style="border:1px dashed rgba(0,0,0,0.12);border-radius:12px;">
+              — لم تُرفَع أي فواتير بعد —
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Receipts Modal (Carousel with PDFs & images) -->
+      {# ---- Modal with Bootstrap Carousel: shows all attachments ---- #}
+      {% if receipt_files %}
+      <div class="modal fade receipts-modal" id="receiptsCarouselModal-{{ item.id }}"
+          tabindex="-1" aria-hidden="true"
+          data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+          <div class="modal-content rounded-4" style="border-radius:16px; height:100%; display:flex; flex-direction:column;">
+            <div class="modal-header">
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              <h5 class="modal-title fw-bold">الفواتير والإيصالات</h5>
+            </div>
+            <div class="modal-body p-0" style="height:min(90dvh, calc(100dvh - 2rem));">
+              <div id="receiptsCarousel-{{ item.id }}" class="carousel slide h-100" data-bs-interval="false">
+                <div class="carousel-inner h-100">
+                  {% for r in receipt_files %}
+                    {% set lower = r|lower %}
+                    {% set open_url = url_for('uploaded_file', filename=r) %}
+                    {% set dl_url   = url_for('download_uploaded', filename=r) %}
+                    <div class="carousel-item {% if loop.index0 == 0 %}active{% endif %} h-100"
+                        data-open="{{ open_url }}"
+                        data-download="{{ dl_url }}">
+                      <div class="d-flex align-items-center justify-content-center h-100 bg-light" style="min-height:300px;">
+                        {% if (r|lower)[-4:] == '.pdf' %}
+                          <object
+                            data="{{ open_url }}#toolbar=1&navpanes=0&scrollbar=0&zoom=page-fit"
+                            data-base="{{ open_url }}"
+                            type="application/pdf"
+                            class="w-100 h-100"
+                            style="display:block; border:0; height:100%;">
+
+                            {# Fallback is rendered only if the PDF cannot be shown inline #}
+                            <div class="p-3 text-center bg-white">
+                              تعذّر عرض الملف داخل الصفحة.
+                              <div class="mt-2">
+                                <a class="btn btn-sm btn-secondary" href="{{ open_url }}" target="_blank" rel="noopener">OPEN IN A NEW TAB</a>
+                                <a class="btn btn-sm btn-primary ms-2" href="{{ dl_url }}">DOWNLOAD</a>
+                              </div>
+                            </div>
+                          </object>
+                        {% else %}
+                          <img
+                            src="{{ open_url }}"
+                            data-base="{{ open_url }}"
+                            alt="receipt"
+                            style="max-width:90vw; max-height:90vh; object-fit:contain; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                        {% endif %}
+                      </div>
+                    </div>
+                  {% endfor %}
+
+                </div>
+
+                <button class="carousel-control-prev" type="button" data-bs-target="#receiptsCarousel-{{ item.id }}" data-bs-slide="prev">
+                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden">السابق</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#receiptsCarousel-{{ item.id }}" data-bs-slide="next">
+                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden">التالي</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+
+              <a class="btn btn-sm btn-secondary" data-action="open" target="_blank" rel="noopener">OPEN IN A NEW TAB</a>
+              <a class="btn btn-sm btn-primary ms-2" data-action="download">DOWNLOAD</a>
+              <button class="btn btn-sm btn-outline-dark ms-auto" data-action="reload">RELOAD PAGE</button>
+              <button class="btn btn-sm btn-light" data-bs-dismiss="modal">CLOSE</button>
+
+
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+        {# ---------- Modal: shows all images ---------- #}
+        {% if image_files %}
+        <div class="modal fade images-modal" id="imagesModal-{{ item.id }}" tabindex="-1" aria-hidden="true" dir="rtl" data-bs-backdrop="static">
+          <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content rounded-4" style="border-radius:16px;">
+              <div class="modal-header" style="border-bottom:1px solid rgba(177,152,255,.25);">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title fw-bold">صور القطعة</h5>
+              </div>
+
+              <div class="modal-body p-0" style="height:min(90dvh, calc(100dvh - 2rem));">
+                <div id="imagesCarousel-{{ item.id }}" class="carousel slide h-100" data-bs-interval="false">
+                  <div class="carousel-inner h-100">
+                    {% set IMG_EXT = ['png','jpg','jpeg','webp','gif','bmp','tif','tiff'] %}
+                    {% set first = True %}
+                    {% for f in image_files %}
+                      {% set ext = f.rsplit('.', 1)[-1]|lower %}
+                      {% if ext in IMG_EXT %}
+                        {% set open_url = url_for('uploaded_file', filename=f) %}
+                        {% set dl_url   = url_for('download_uploaded', filename=f) %}
+                      <div class="carousel-item h-100 {% if loop.index0 == 0 %}active{% endif %}"
+                           data-open="{{ open_url }}"
+                           data-download="{{ dl_url }}">
+                        <div class="d-flex align-items-center justify-content-center h-100 bg-light" style="min-height:300px;">
+                          <img
+                            src="{{ open_url }}"
+                            data-base="{{ open_url }}"
+                            class="d-block"
+                            alt="image"
+                            style="max-width:90vw; max-height:88vh; object-fit:contain; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                        </div>
+                      </div>
+                        {% set first = False %}
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+
+                  {% if image_files|length > 1 %}
+                    <button class="carousel-control-prev" type="button" data-bs-target="#imagesCarousel-{{ item.id }}" data-bs-slide="prev">
+                      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                      <span class="visually-hidden">السابق</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#imagesCarousel-{{ item.id }}" data-bs-slide="next">
+                      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                      <span class="visually-hidden">التالي</span>
+                    </button>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Persistent footer actions -->
+              <div class="modal-footer">
+                <a class="btn btn-sm btn-secondary" data-action="open" target="_blank" rel="noopener" href="#">OPENN IN A NEW TAB</a>
+                <a class="btn btn-sm btn-primary ms-2" data-action="download" href="#">DOWNLOAD</a>
+                <button class="btn btn-sm btn-outline-dark ms-auto" data-action="reload" type="button">RELOAD PAGE</button>
+                <button class="btn btn-sm btn-light" type="button" data-bs-dismiss="modal">CLOSE</button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+
+      <!-- Actions -->
+    <div class="d-flex justify-content-between mt-4">
+      {# ---------- Option Button: btn btn-light ---------- #}
+      <a class="btn btn-outline-secondary" href="{{ url_for('inventory_list') }}">العودة إلى القائمة</a> 
+      
+      <div class="d-flex gap-2">
+      {# ---------- Option Button: btn btn-outline-primary ---------- #}
+        <button type="button"
+                class="btn btn-warning px-4 fw-bold text-white"
+                style="border-radius:10px; background-color:#f5b100; border:none;"
+                data-bs-toggle="modal" data-bs-target="#editItemModal">تعديل
+        </button>
+
+        <form method="post"
+              action="{{ url_for('inventory_delete', item_id=item.id) }}"
+              onsubmit="return confirm('هل أنت متأكد من حذف هذه القطعة؟');"
+              class="ms-auto">
+          <button class="btn btn-danger">حذف</button>
+        </form>
+
+      </div>
+    </div>
+
+    <!-- Modal: تعديل القطعة -->
+    <div class="modal fade" id="editItemModal" tabindex="-1" aria-labelledby="editItemLabel" aria-hidden="true" dir="rtl">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;">
+          <div class="modal-header" style="border-bottom:1px solid rgba(177,152,255,.25);">
+            <h5 class="modal-title" id="editItemLabel">تعديل بيانات القطعة</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+          </div>
+
+          <form method="POST" action="{{ url_for('inventory_edit', item_id=item.id) }}">
+            <div class="modal-body">
+
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label">النوع</label>
+                  <select name="category" class="form-select">
+                    <option value="raw"     {{ 'selected' if item.category=='raw' else '' }}>ذهب خام</option>
+                    <option value="bar"     {{ 'selected' if item.category=='bar' else '' }}>سبيكة</option>
+                    <option value="jewelry" {{ 'selected' if item.category=='jewelry' else '' }}>حُلي</option>
+                    <option value="other"   {{ 'selected' if item.category not in ['raw','bar','jewelry'] else '' }}>أخرى</option>
+                  </select>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label">العيار</label>
+                  <input type="number" name="karat" class="form-control" value="{{ item.karat or '' }}" min="1" max="24" step="1">
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label">الوزن (جم)</label>
+                  <input type="number" name="weight_g" class="form-control" value="{{ item.weight_g or '' }}" min="0" step="0.01" required>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label">سعر الجرام (درهم)</label>
+                  <input type="number" name="price_per_g" class="form-control" value="{{ item.price_per_g or '' }}" min="0" step="0.01">
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label">القيمة الإجمالية المدفوعة (اختياري)</label>
+                  <input type="number" name="total_paid" class="form-control" value="{{ item.total_paid or '' }}" min="0" step="0.01">
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label">تاريخ الشراء</label>
+                  <input type="date" name="purchase_date" class="form-control"
+                        value="{{ item.purchase_date.strftime('%Y-%m-%d') if item.purchase_date else '' }}">
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label">تاريخ الحول</label>
+                  <input type="date" name="hawl_date" class="form-control"
+                        value="{{ item.hawl_date.strftime('%Y-%m-%d') if item.hawl_date else '' }}">
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label">المتجر</label>
+                  <input type="text" name="vendor" class="form-control" value="{{ item.vendor or '' }}">
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label">مكان الحفظ</label>
+                  <input type="text" name="location" class="form-control" value="{{ item.location or '' }}">
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">ملاحظات</label>
+                  <textarea name="notes" class="form-control" rows="3">{{ item.notes or '' }}</textarea>
+                </div>
+              </div>
+
+            </div>
+            <div class="modal-footer" style="border-top:1px solid rgba(177,152,255,.25);">
+              <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+              <button type="submit" class="btn px-4 fw-bold text-white" style="background:#6a4bc7; border-radius:10px;">
+                حفظ التعديلات
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ================== Images Modal ==================
+
+  // Open images modal (images carousel) at the clicked thumbnail index
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('[data-open-images]');
+    if (!btn) return;
+    const idx = parseInt(btn.getAttribute('data-idx') || '0', 10);
+    const modal = document.querySelector(btn.getAttribute('data-bs-target'));
+    if (!modal) return;
+    modal.dataset.startIndex = String(idx);
+  });
+
+  // When images modal is shown, jump to the stored slide (default 0)
+  document.addEventListener('shown.bs.modal', function (e) {
+    const modal = e.target;
+    if (!modal.id || !modal.id.startsWith('imagesModal-')) return;
+
+    const startIdx = parseInt(modal.dataset.startIndex || '0', 10);
+    const carouselEl = modal.querySelector('.carousel');
+    if (!carouselEl) return;
+
+    try {
+      const c = bootstrap.Carousel.getOrCreateInstance(carouselEl, { interval: false, ride: false });
+      c.to(startIdx);
+    } catch (err) { /* no-op */ }
+  });
+
+  document.addEventListener('hidden.bs.modal', function (e) {
+    const modal = e.target;
+    if (!modal.id || !modal.id.startsWith('imagesModal-')) return;
+
+    // Optional: clear start index so next open defaults to 0 unless a thumb is clicked
+    delete modal.dataset.startIndex;
+  });
+
+    function getActiveSlide(modal) {
+    return modal.querySelector('.carousel .carousel-item.active');
+  }
+
+  function syncImageFooter(modal) {
+    const slide = getActiveSlide(modal);
+    if (!slide) return;
+    const openBtn = modal.querySelector('.images-modal [data-action="open"]') || modal.querySelector('[data-action="open"]');
+    const dlBtn   = modal.querySelector('.images-modal [data-action="download"]') || modal.querySelector('[data-action="download"]');
+    if (openBtn) openBtn.href = slide.dataset.open || '#';
+    if (dlBtn)   dlBtn.href   = slide.dataset.download || '#';
+  }
+
+  // On open: reset carousel to first slide & sync footer
+  document.addEventListener('shown.bs.modal', function (e) {
+    const modal = e.target;
+    if (!modal.classList.contains('images-modal')) return;
+
+    const carEl = modal.querySelector('.carousel');
+    if (carEl) {
+      try {
+        const c = bootstrap.Carousel.getOrCreateInstance(carEl, { interval: false, ride: false });
+        c.to(0);
+        carEl.addEventListener('slid.bs.carousel', () => syncImageFooter(modal), { passive: true });
+      } catch {}
+    }
+    syncImageFooter(modal);
+  });
+
+  // Reload button: cache-bust the current image src
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('[data-action="reload"]');
+    if (!btn) return;
+
+    const modal = btn.closest('.images-modal');
+    if (!modal) return;
+
+    const slide = getActiveSlide(modal);
+    if (!slide) return;
+
+    const img = slide.querySelector(IMG_SEL);
+    if (!img) return;
+
+    const base = img.getAttribute('data-base') || (img.src ? img.src.split('#')[0].split('?')[0] : '');
+    if (!base) return;
+    img.src = `${base}?v=${Date.now()}`; // force refresh
+  });
+
+    // Keep footer in sync when clicking prev/next
+  document.addEventListener('click', function (e) {
+    const ctrl = e.target.closest('.images-modal .carousel-control-prev, .images-modal .carousel-control-next');
+    if (!ctrl) return;
+    const modal = ctrl.closest('.images-modal');
+    if (!modal) return;
+    const car = modal.querySelector('.carousel');
+    if (!car) return;
+    car.addEventListener('slid.bs.carousel', () => syncImageFooter(modal), { once: true });
+  });
+
+  // ----- Receipts modal: robust PDF reload on every open -----
+
+  // Selector for PDFs inside the modal
+  const PDF_SEL = 'object[type="application/pdf"]';
+  const IMG_SEL = 'img[data-base]';
+
+  function updateReceiptActions(modal) {
+    const active = modal.querySelector('.carousel-item.active');
+    if (!active) return;
+    const openBtn = modal.querySelector('[data-action="open"]');
+    const dlBtn   = modal.querySelector('[data-action="download"]');
+    if (openBtn) openBtn.href = active.dataset.open || '#';
+    if (dlBtn)   dlBtn.href   = active.dataset.download || '#';
+  }
+
+  // Robust reload on every open (handles Chrome/Safari/iOS)
+  document.addEventListener('shown.bs.modal', function (e) {
+    if (!e.target.classList.contains('receipts-modal')) return;
+
+    // Force fresh load for PDFs (clone+replace, cache-bust)
+    e.target.querySelectorAll(PDF_SEL).forEach((obj) => {
+      // base URL from data-base (preferred) or from current data
+      const baseAttr = obj.getAttribute('data-base') || '';
+      const current  = obj.getAttribute('data') || '';
+      const baseFromCurrent = current ? current.split('#')[0].split('?')[0] : '';
+      const base = baseAttr || baseFromCurrent;
+      if (!base) return;
+
+      // params / zoom
+      const storedZoom = obj.dataset.zoom && /^\d+$/.test(obj.dataset.zoom) ? obj.dataset.zoom : null;
+      const fit = obj.dataset.fit === '1';
+      const params = 'toolbar=1&navpanes=0&scrollbar=0';
+      const hash   = fit ? `${params}&zoom=page-fit`
+                         : (storedZoom ? `${params}&zoom=${storedZoom}` : params);
+
+      // Build fresh URL with cache-buster
+      const url = `${base}?v=${Date.now()}#${hash}`;
+
+      // Clone + replace to force plugin re-init
+      const fresh = obj.cloneNode(true);
+      fresh.setAttribute('data-base', base);
+      fresh.setAttribute('data', url);
+      obj.replaceWith(fresh);
+    });
+
+    // Sync footer buttons
+    updateReceiptActions(e.target);
+
+    // Reset carousel to first slide
+    const carouselEl = e.target.querySelector('.carousel');
+    if (carouselEl) {
+      try {
+        const c = bootstrap.Carousel.getOrCreateInstance(carouselEl, { interval: false, ride: false });
+        c.to(0);
+        carouselEl.addEventListener('slid.bs.carousel', () => updateReceiptActions(e.target));
+      } catch {}
+    }
+  });
+
+
+  // When the receipts modal hides: unload PDFs (frees memory and avoids iOS blank bug)
+  document.addEventListener('hidden.bs.modal', function (e) {
+    if (!e.target.classList.contains('receipts-modal')) return;
+
+    // Blank PDFs (frees memory), but DON'T remove the attribute; we replace on open anyway
+    e.target.querySelectorAll(PDF_SEL).forEach((obj) => {
+      obj.setAttribute('data', 'about:blank');              // unload
+    });
+  });
+
+
+
+
+  // Reload button: now supports PDFs and images
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('[data-action="reload"]');
+    if (!btn) return;
+
+    const modal = btn.closest('.receipts-modal');
+    if (!modal) return;
+
+    const active = modal.querySelector('.carousel-item.active');
+    if (!active) return;
+
+    // 1) Try PDF first
+    const pdf = active.querySelector(PDF_SEL);
+    if (pdf) {
+      const base = pdf.getAttribute('data-base') || '';
+      if (!base) return;
+      const params = 'toolbar=1&navpanes=0&scrollbar=0&zoom=page-fit';
+      const url = `${base}?v=${Date.now()}#${params}`;
+      const fresh = pdf.cloneNode(true);
+      fresh.setAttribute('data-base', base);
+      fresh.setAttribute('data', url);
+      pdf.replaceWith(fresh);
+      return;
+    }
+
+    // 2) Otherwise handle image
+    const img = active.querySelector(IMG_SEL);
+    if (img) {
+      const base = img.getAttribute('data-base') || (img.src ? img.src.split('#')[0].split('?')[0] : '');
+      if (!base) return;
+      img.src = `${base}?v=${Date.now()}`;   // cache-bust to force reload
+    }
+  });
+
+  // (optional) Disable/enable the “Reload” button depending on slide type
+  function toggleReload(modal) {
+    const btn = modal.querySelector('[data-action="reload"]');
+    if (!btn) return;
+    const active = modal.querySelector('.carousel-item.active');
+    if (!active) return;
+    const hasViewer = !!active.querySelector(PDF_SEL) || !!active.querySelector(IMG_SEL);
+    btn.disabled = !hasViewer;
+  }
+
+  // call toggleReload whenever the modal opens or the slide changes
+  document.addEventListener('shown.bs.modal', function (e) {
+    if (!e.target.classList.contains('receipts-modal')) return;
+    toggleReload(e.target);
+    const car = e.target.querySelector('.carousel');
+    if (car) car.addEventListener('slid.bs.carousel', () => toggleReload(e.target));
+  });
+
+
+// Update footer actions when user clicks prev/next carousel arrows
+document.addEventListener('click', function (e) {
+  const ctrl = e.target.closest('.carousel-control-prev, .carousel-control-next');
+  if (!ctrl) return;
+
+  const modal = ctrl.closest('.receipts-modal');
+  if (!modal) return;
+
+  const car = modal.querySelector('.carousel');
+  if (!car) return;
+
+  // Wait for slide to change, then sync the Open/Download buttons
+  car.addEventListener('slid.bs.carousel', () => updateReceiptActions(modal), { once: true });
+});
+
+
+</script>
+
+
+{% endblock %}

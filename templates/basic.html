@@ -1,0 +1,380 @@
+{% extends "base.html" %}
+{% block title %}الحاسبة الأولية{% endblock %}
+
+{% block content %}
+
+<h1 class="mb-3 text-center" style="color: #2b1a5a; font-weight: bold;">
+الحاسبة الفورية
+</h1>
+
+<style>
+  .card {
+    border-radius: 20px;
+    padding: 2rem 1.5rem;
+    background: #ffffff;
+    border: 1px solid rgba(177,152,255,0.25);       /* subtle lavender border */
+    box-shadow:
+      0 8px 22px rgba(110,72,220,0.08),             /* soft lavender glow */
+      0 2px 6px rgba(177,152,255,0.15);             /* gentle depth */
+    transition: box-shadow .3s ease, transform .2s ease;
+    overflow: hidden;
+  }
+
+
+  /* light, local styles for the karat chips */
+ 
+  .chip-group{
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    padding: 4px;
+    flex-direction: initial;   /* put 24 at the far right > row-reverse */
+    justify-content: initial;  /* stick to the right edge > space-between */
+    align-items: initial;      /* center */
+  }
+  @media (max-width: 390px){
+    .chip-group{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+
+  .chip{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    border-radius: 14px;
+    padding: 0 10px;
+    min-width: 0;          /* مهم لمنع تجاوز العرض داخل الشبكة */
+    white-space: nowrap;
+    background:#eee;
+    font-weight:700;
+    cursor:pointer; user-select:none; text-align:center;
+  }
+
+  .chip.active{
+    background:#c8b3ff; color:#2b1a5a;
+    box-shadow:0 6px 18px rgba(110,72,220,.20);
+  }
+  .big-total { font-size: clamp(28px, 6vw, 48px); font-weight:900; color:#7a73a8; line-height:1; }
+  .label-muted{ color:#7a73a8; font-weight:600; }
+
+
+  .quick-grams {
+    margin-top: 8px;
+    display: flex;
+    justify-content: center;   /* Center horizontally */
+    flex-wrap: wrap;
+    gap: 10px 12px;             /* vertical & horizontal spacing */
+    align-items: center;
+  }
+
+  .gram-chip {
+    background: #f4f4f4;
+    color: #333;
+    font-weight: 600;
+    border-radius: 14px;
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    font-size: 1rem;
+    min-width: 80px;           /* makes all chips consistent size */
+    text-align: center;
+  }
+
+
+  .gram-chip:hover {
+    background: #d9c6ff;
+    color: #2d1360;
+  }
+  .gram-chip.active {
+    background: #c8b3ff;
+    color: #2b1a5a;
+    box-shadow: 0 3px 10px rgba(110,72,220,0.25);
+  }
+
+  .currency-icon {
+    height: 0.85em;
+    vertical-align: middle;
+    filter: invert(45%) sepia(18%) saturate(800%) hue-rotate(220deg) brightness(95%) contrast(90%);
+  }
+
+  
+/* Chip-like checkbox with fade gradient */
+.choice{ flex:1; min-width:0; }     /* fix Safari flex/grid shrink */
+.fade-check { position:absolute; opacity:0; width:0; height:0; }
+
+.choice-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;   /* equal widths */
+  gap: 16px;
+  direction:rtl;            /* keep Arabic order */
+  grid-template-areas: "bar raw";
+}
+
+.choice-raw { grid-area: raw; }
+.choice-bar  { grid-area: bar; }
+
+/* the chip fills its grid cell */
+.fade-chip{
+  width: 100%;
+  box-sizing: border-box;           /* include padding in width */
+  padding: 14px 24px;
+  border-radius: 20px;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  background:#f3f3f7; color:#2b2b35; font-weight:800;
+  box-shadow:0 6px 18px rgba(110,72,220,.10);
+}
+
+.fade-chip:active { transform: translateY(1px); }
+
+.fade-check:checked + .fade-chip{
+  color:#2b1a5a;
+  background: linear-gradient(135deg,#ece6ff 0%, #dcccff 45%, #c8b3ff 100%);
+  box-shadow:0 8px 20px rgba(110,72,220,.25);
+}
+
+.fade-chip .tick {
+  width:18px; height:18px; border-radius:6px; border:2px solid #b8b8c6;
+  display:inline-block; position:relative; transition: all .25s ease;
+}
+.fade-check:checked + .fade-chip .tick{
+  border-color:transparent; background:#7e6ad9;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.7);
+}
+.fade-check:checked + .fade-chip .tick::after{
+  content:""; position:absolute; inset:3px 5px 5px 3px;
+  border-right:2px solid #fff; border-bottom:2px solid #fff; transform:rotate(45deg);
+}
+
+/* optional focus ring */
+.fade-check:focus-visible + .fade-chip{ outline: 3px solid rgba(110,72,220,.35); outline-offset:3px; }
+
+
+</style>
+
+<div class="row justify-content-center">
+  <div class="col-12 col-md-10 col-lg-8">
+
+    <div class="card p-3 shadow-sm">
+
+        <!-- Quantity -->
+        <div class="mb-3">
+            <label class="label-muted mb-2 d-block text-start">الكمية</label>
+
+            <div class="input-group">
+                <span class="input-group-text bg-light fw-semibold px-3">جرام</span>
+                <input id="grams" type="number" step="0.01" min="0"
+                    class="form-control form-control-lg text-end"
+                    placeholder="أدخل كمية الذهب الخـــام بالجرام"
+                    value="{{ '%.2f'|format(grams) if grams > 0 else '' }}">
+            </div>
+
+
+
+            <!-- Quick selection chips -->
+            <div class="quick-grams">
+                <!-- Grams -->
+                <div class="gram-chip" data-val="1">1 جم</div>
+                <div class="gram-chip" data-val="2.5">2.5 جم</div>
+                <div class="gram-chip" data-val="5">5 جم</div>
+                <div class="gram-chip" data-val="10">10 جم</div>
+                <div class="gram-chip" data-val="20">20 جم</div>
+                <div class="gram-chip" data-val="50">50 جم</div>
+                <div class="gram-chip" data-val="100">100 جم</div>
+
+                <div class="gram-chip" data-val="500">نصف كيلو</div>
+                <div class="gram-chip" data-val="1000">1 كيلو</div>
+
+                <!-- Tolas (converted internally to grams) -->
+                <div class="gram-chip" data-val="11.664">1 تولة</div>
+                <div class="gram-chip" data-val="116.64">10 تولة</div>
+            </div>
+        </div>
+
+    <div class="mb-3 text-end">
+        <label class="label-muted mb-2 d-block text-start">نوع الذهب</label>
+
+        <!-- hidden single source of truth for the backend -->
+        <input type="hidden" id="gold_type" name="gold_type" value="{{ gold_type or 'raw' }}">
+
+        <div class="choice-row">
+
+            <!-- BAR chip -->
+            <div class="choice choice-raw position-relative d-inline-block">
+                <input class="fade-check" type="checkbox" id="is_bar" {{ 'checked' if gold_type=='bar' else '' }}>
+                <label class="fade-chip" for="is_bar">
+                    <span class="tick" aria-hidden="true"></span>
+                    سبيكة
+                </label>
+            </div>
+
+            <!-- RAW chip -->
+            <div class="choice choice-bar position-relative d-inline-block">
+                <input class="fade-check" type="checkbox" id="is_raw" {{ 'checked' if gold_type!='bar' else '' }}>
+                <label class="fade-chip" for="is_raw">
+                    <span class="tick" aria-hidden="true"></span>
+                    ذهب خام
+                </label>
+            </div>
+        </div>
+    </div>
+
+
+        <!-- Currency -->
+        <div class="mb-4">
+            <label class="label-muted mb-2 d-block text-start">العملة</label>
+
+            <div class="input-group flex-row-reverse">
+                <select id="currency" class="form-select form-select-lg text-end">
+                <option value="AED" selected>درهم إماراتي</option>
+                <option value="USD">دولار أمريكي</option>
+                <option value="EUR">يورو</option>
+                <option value="SAR">ريال سعودي</option>
+                <option value="KWD">دينار كويتي</option>
+                </select>
+            </div>
+        </div>
+
+      <!-- Karat selector -->
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="label-muted">اختر العيار</span>
+            </div>
+            <div class="chip-group" id="karatGroup">
+            {% for k in karats %}
+                <div class="chip {% if k==karat %}active{% endif %}" data-karat="{{k}}">
+                    {{k}}
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+
+      <!-- Totals -->
+        <div class="mt-4 text-center">
+    
+            <div class="label-muted mb-1">القيمة الإجمالية</div>
+            <div id="total" class="big-total">{{ '%.2f'|format(final_total) }} {{ currency }}</div>
+            <div class="text-muted mt-2 small">
+                سعر الجرام الآن:
+                <strong id="ppg">{{ '%.2f'|format(price_per_g) }}</strong>
+            </div>
+
+            <div id="disclaimer" class="text-center mt-2" {{ 'hidden' if gold_type=='bar' else '' }}>
+                <p class="mb-0" style="color:#6c757d; font-size:0.9rem;">
+                    <span>المبلغ الموضّح لا يشمل تكلفة السبيكة أو رسوم التصنيع/ الشهادة</span> 💡
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- inline script (base.html has no script block) -->
+<script>
+    const rawBox  = document.getElementById('is_raw');
+    const barBox  = document.getElementById('is_bar');
+    const typeInp = document.getElementById('gold_type');
+    const feeWrap = document.getElementById('barFeeWrap'); // optional
+    const barFeeEl  = document.getElementById('bar_fee');
+    const disclaimer = document.getElementById('disclaimer');
+
+    function setType(t){
+        rawBox.checked = (t === 'raw');
+        barBox.checked = (t === 'bar');
+        typeInp.value  = t;
+        if (feeWrap) feeWrap.style.display = (t === 'bar') ? '' : 'none';
+        
+        if (disclaimer) disclaimer.hidden = (t === 'bar');
+    }
+
+    // prevent “both unchecked”
+    rawBox.addEventListener('click', (e) => {
+        if (typeInp.value === 'raw') { e.preventDefault(); return; } // already selected
+    });
+    barBox.addEventListener('click', (e) => {
+        if (typeInp.value === 'bar') { e.preventDefault(); return; } // already selected
+
+        // Hide disclaimer for Bar, show for Raw
+        if (disclaimer) disclaimer.style.display = (t === 'bar') ? 'none' : '';
+    });
+
+    // switch selection
+    rawBox.addEventListener('change', () => setType('raw'));
+    barBox.addEventListener('change', () => setType('bar'));
+
+    // init (respect server value)
+    setType(typeInp.value === 'bar' ? 'bar' : 'raw');
+
+    // Prices per gram by karat from server (AED base)
+    const prices = {{ prices_json|safe }};
+    let currentKarat = {{ karat|int }};
+
+    const gramsEl    = document.getElementById('grams');
+    const totalEl    = document.getElementById('total');
+    const ppgEl      = document.getElementById('ppg');
+    const currencyEl = document.getElementById('currency');
+    const groupEl    = document.getElementById('karatGroup');
+    
+    // --- simple AED→currency conversion (replace with live API later if you want)
+    const rates = {
+        AED: 1,
+        USD: 0.27225,   // 1 AED = 0.27225 USD
+        EUR: 0.25,      
+        SAR: 1.02,
+        KWD: 0.083  
+    };
+    const symbols = { AED: '<img src="/static/icons/UAE_Dirham_Symbol.svg" class="currency-icon">', USD: '$', EUR: '€', SAR: '﷼', KWD: 'KWD' };
+
+    // --- Quick grams chips ---
+    document.querySelectorAll('.gram-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        document.querySelectorAll('.gram-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+
+        const val = parseFloat(chip.dataset.val);
+        gramsEl.value = val.toFixed(2);
+        recalc();
+    });
+    });
+
+    function recalc(){
+        const grams = Number.parseFloat(gramsEl.value) || 0;
+        const pricePerG_AED = Number(prices[currentKarat]) || 0;
+        const total_AED = grams * pricePerG_AED;     // base totals (AED)
+
+        // apply bar fee only when bar is selected
+        let fee_AED = 0;
+        if (typeInp && typeInp.value === 'bar' && grams > 0) {
+            fee_AED = Number.parseFloat(barFeeEl?.value || 40) || 0;
+        }
+        const total_with_fee_AED = total_AED + fee_AED;
+
+        // convert
+        const cur = currencyEl.value;
+        const rate = rates[cur] || 1;
+        const pricePerG_conv = (pricePerG_AED * rate).toFixed(2);
+        const total_conv     = (total_with_fee_AED * rate).toFixed(2);
+        // update UI
+        totalEl.innerHTML = `${total_conv} ${symbols[cur]}`;
+        ppgEl.innerHTML   = `${pricePerG_conv} ${symbols[cur]}`;
+    }
+
+    // Karat click
+    groupEl.addEventListener('click', (e)=>{
+        const chip = e.target.closest('.chip');
+        if(!chip) return;
+        groupEl.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+        chip.classList.add('active');
+        currentKarat = parseInt(chip.dataset.karat, 10);
+        recalc();
+    });
+
+    gramsEl.addEventListener('input', recalc);
+    currencyEl.addEventListener('change', recalc);
+
+    // first paint
+    recalc();
+</script>
+
+{% endblock %}

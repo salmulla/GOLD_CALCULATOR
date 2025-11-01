@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}إضافة قطعة ذهبية{% endblock %}
+{% block content %}
+<div class="container py-4" dir="rtl">
+  <h2 class="mb-3" style="color:#2b1a5a; font-weight:800;">إضافة قطعة ذهبية</h2>
+
+  <form method="POST" enctype="multipart/form-data" class="card p-3"
+        style="max-width:760px; margin:auto; border-radius:16px; border:1px solid rgba(177,152,255,.25); box-shadow:0 6px 16px rgba(110,72,220,.08);">
+
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label">النوع</label>
+        <select name="kind" class="form-select">
+          <option value="raw">ذهب خام</option>
+          <option value="bar">سبيكة</option>
+          <option value="jewelry">مجوهرات</option>
+        </select>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label">العنوان / الاسم</label>
+        <input name="title" class="form-control" placeholder="خاتم، سبيكة 10جم، ...">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">العيار</label>
+        <select name="karat" class="form-select">
+          <option>24</option><option>22</option><option>21</option><option>18</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">الوزن (جم)</label>
+        <input type="number" step="0.01" name="weight_g" class="form-control">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">سعر/جم</label>
+        <input type="number" step="0.01" name="price_per_g" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">الإجمالي المدفوع</label>
+        <input type="number" step="0.01" name="purchase_total" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">المتجر/البائع</label>
+        <input name="vendor" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">الموقع</label>
+        <input name="location" class="form-control">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">تاريخ التملك</label>
+        <input type="date" name="owned_at" class="form-control" value="{{ '%Y-%m-%d'|format(datetime.utcnow()) }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">بداية الحول (اختياري)</label>
+        <input type="date" name="hawl_start" class="form-control">
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="is_exempt" id="is_exempt">
+          <label class="form-check-label" for="is_exempt">مستثنى من الزكاة</label>
+        </div>
+      </div>
+
+      <div class="col-md-12">
+        <label class="form-label">ملاحظات</label>
+        <textarea name="notes" class="form-control" rows="2"></textarea>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">صورة القطعة</label>
+        <input type="file" name="photo" class="form-control" accept=".png,.jpg,.jpeg,.webp">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">إيصال الشراء</label>
+        <input type="file" name="receipt" class="form-control" accept=".png,.jpg,.jpeg,.webp,.pdf">
+      </div>
+    </div>
+
+    <div class="text-center mt-3">
+      <button class="btn px-5" type="submit"
+              style="background:linear-gradient(135deg,#c7a144,#b89035); color:#fff; font-weight:700; border:none; border-radius:12px; box-shadow:0 6px 15px rgba(183,140,43,.3);">
+        حفظ
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

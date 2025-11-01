@@ -1,0 +1,19 @@
+{
+  "source": "https://igold.ae/gold-rate/",
+  "pure": {
+    "gold_per_g_aed": 482.64,
+    "silver_per_g_aed": 6.34,
+    "updated_at": "01/11/2025 11:39:01"
+  },
+  "retail": {
+    "24K_per_g_aed": 482.64,
+    "22K_per_g_aed": 446.86,
+    "21K_per_g_aed": 426.53,
+    "18K_per_g_aed": 365.6,
+    "updated_at": "01/11/2025 11:39:01"
+  },
+  "chart_latest": {
+    "per_oz_aed": 14700.74174,
+    "per_g_aed": 472.6398220535911
+  }
+}

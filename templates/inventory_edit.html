@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}ممتلكات الذهب{% endblock %}
+
+{% block content %}
+<div class="container py-4" dir="rtl">
+  <h1 class="mb-3 text-center" style="color:#2b1a5a; font-weight:800;">ممتلكات الذهب</h1>
+
+  <div class="card p-3" style="border-radius:20px;background:#fff;border:1px solid rgba(177,152,255,.25);
+       box-shadow:0 8px 22px rgba(110,72,220,.08),0 2px 6px rgba(177,152,255,.15);">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="small text-muted">سجل جميع القطع التي تملكها: خام، سبائك، حُلي.</div>
+      <a class="btn btn-sm" style="background:linear-gradient(135deg,#c7a144,#b89035);color:#fff;font-weight:700;border-radius:10px;"
+         href="{{ url_for('add_inventory') }}">+  إضافة قطعة جديدة</a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle text-end">
+        <thead>
+          <tr style="background:#f9f8ff">
+            <th>النوع</th>
+            <th>العيار</th>
+            <th>الوزن (جم)</th>
+            <th>القيمة (درهم)</th>
+            <th>تاريخ الشراء</th>
+            <th>تاريخ الحول</th>
+            <th>ملاحظات</th>
+            <th>تفاصيل</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if items and items|length %}
+            {% for i in items %}
+              <tr>
+                <td>
+                  {% if i.category=='raw' %}ذهب خام
+                  {% elif i.category=='bar' %}سبيكة
+                  {% elif i.category=='jewelry' %}حُلي
+                  {% else %}أخرى{% endif %}
+                </td>
+                <td>{{ i.karat }}</td>
+                <td>{{ '%.2f'|format(i.weight_g) }}</td>
+                <td>
+                  {% if i.price_per_g %}
+                    {{ '%.2f'|format(i.weight_g * i.price_per_g) }}
+                  {% elif i.total_paid %}
+                    {{ '%.2f'|format(i.total_paid) }}
+                  {% else %} — {% endif %}
+                </td>
+                <td>{{ i.purchase_date or '—' }}</td>
+                <td>{{ i.hawl_date or '—' }}</td>
+                <td class="text-truncate" style="max-width:220px;">{{ i.notes or '' }}</td>
+                <td>
+                  <a class="btn btn-sm"
+                    style="background:#eef;border:1px solid #e3dcff;border-radius:10px;font-weight:700;color:#2b1a5a"
+                    href="{{ url_for('inventory_detail', item_id=i.id) }}">
+                    عرض
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">
+                لا توجد قطع بعد. ابدأ بإضافة أول قطعة.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+
+      </table>
+    </div>
+
+    <div class="mt-2">
+      <a href="{{ url_for('add_inventory') }}" class="text-decoration-none">+ إضافة قطعة جديدة</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

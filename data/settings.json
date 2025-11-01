@@ -1,0 +1,40 @@
+{
+  "ui": {
+    "lang": "ar",
+    "theme": "purple",
+    "default_mode": "buy",
+    "unit": "gram",
+    "dark": false
+  },
+  "pricing": {
+    "source": "karat",
+    "auto_refresh_sec": 60,
+    "vat": 0.05,
+    "bar_fee": 40.0,
+    "karat_factors": {
+      "24": 1.0,
+      "22": 0.9166666666666666,
+      "21": 0.875,
+      "18": 0.75
+    }
+  },
+  "zakat": {
+    "nisab_ref": "24k_85g",
+    "rate": 0.025,
+    "hawl_start": "2025-10-13",
+    "reminder_days_before": 15,
+    "reminder_time": "09:00"
+  },
+  "notifications": {
+    "price_change_pct": 2.0,
+    "zakat_reminder": false
+  },
+  "about": {
+    "version": "1.0.0",
+    "developer": "Your Name"
+  },
+  "inventory": {
+    "currency": "AED",
+    "exclude_jewelry_from_zakat": false
+  }
+}

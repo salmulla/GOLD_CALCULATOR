@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}تفاصيل القطعة{% endblock %}
+{% block content %}
+<div class="container py-4" dir="rtl">
+  <div class="card p-3" style="max-width:760px; margin:auto; border-radius:16px; border:1px solid rgba(177,152,255,.25); box-shadow:0 6px 16px rgba(110,72,220,.08);">
+    <h3 style="color:#2b1a5a; font-weight:800;">{{ item.title }}</h3>
+    <div class="text-muted mb-2">{{ item.kind }} • عيار {{ item.karat }} • {{ "%.2f"|format(item.weight_g) }} جم</div>
+    <div class="row g-2 small">
+      <div class="col-md-4">تاريخ التملك: {{ item.owned_at.strftime("%Y-%m-%d") }}</div>
+      <div class="col-md-4">تاريخ الحول: {{ item.hawl_date.strftime("%Y-%m-%d") }}</div>
+      <div class="col-md-4">
+        الحالة:
+        {% set s = item.due_status %}
+        <span class="badge 
+          {% if s=='ok' %} bg-success {% elif s=='soon' %} bg-warning text-dark 
+          {% elif s=='due' %} bg-primary {% else %} bg-danger {% endif %}">
+          {{ s }}
+        </span>
+      </div>
+    </div>
+
+    <hr>
+    {% if item.purchase_total or item.purchase_price_per_g %}
+      <div class="mb-2">الإجمالي المدفوع: {{ "%.2f"|format(item.purchase_total) }} — سعر/جم: {{ "%.2f"|format(item.purchase_price_per_g) }}</div>
+    {% endif %}
+    {% if item.vendor %}<div class="mb-1">المتجر: {{ item.vendor }}</div>{% endif %}
+    {% if item.location %}<div class="mb-1">الموقع: {{ item.location }}</div>{% endif %}
+    {% if item.notes %}<div class="mb-2">ملاحظات: {{ item.notes }}</div>{% endif %}
+
+    <div class="mt-3">
+      <h6>المرفقات</h6>
+      <div class="d-flex flex-wrap gap-2">
+        {% for a in item.attachments %}
+          <a class="btn btn-sm btn-outline-secondary" href="{{ a.filename | replace('data/uploads/','/uploads/') }}" target="_blank">
+            {{ '📷 صورة' if a.kind=='photo' else '🧾 إيصال' }}
+          </a>
+        {% else %}
+          <span class="text-muted small">لا توجد مرفقات.</span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
