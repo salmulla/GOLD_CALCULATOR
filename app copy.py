@@ -28,7 +28,7 @@ except Exception:
 
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
+app.secret_key = "anysecretkey" 
 CORS(app)
 
 DAYS_AR = {
@@ -218,7 +218,7 @@ def index():
 IGOLD_URL = "https://igold.ae/gold-rate/"
 IGOLD_TTL = 60 # seconds
 _igold_cache = {"at": 0.0, "payload": None}
-IGOLD_SNAPSHOT = Path(BASE_DIR) / "data" / "igold_snapshot.json"
+IGOLD_SNAPSHOT = Path("data/igold_snapshot.json")
 
 CHARTS_URL = "https://charts.igold.ae/api/data?metal=xau&currency=aed&period=live&weight=ounce&purity=1000&_=1760175353677"
 
@@ -386,7 +386,7 @@ def fetch_aed_per_gram_24k() -> float:
     return 250.0
 
 # ---- settings storage ----
-SETTINGS_FILE = Path(BASE_DIR) / "data" / "settings.json"
+SETTINGS_FILE = Path("data/settings.json")
 DEFAULT_SETTINGS = {
     "ui": {"lang": "ar", "theme": "gold", "default_mode": "buy", "unit": "gram", "dark": False},
     "pricing": {"source": "karat", "auto_refresh_sec": 60, "vat": 0.05, "bar_fee": 40.0,
@@ -513,8 +513,7 @@ def api_igold():
     return jsonify(get_igold_rates())
 
 # ---------- Local storage for manual updates ----------
-DATA_DIR = Path(BASE_DIR) / "data"
-
+DATA_DIR = Path("data")
 TREND_FILE = DATA_DIR / "trend_data.json"
 
 def load_trend():
@@ -877,13 +876,9 @@ UPLOAD_DIR = Path("data/uploads")
 ALLOWED_EXTENSIONS = {"png","jpg","jpeg","webp","pdf"}
 MAX_FILE_SIZE_MB = 5 # per-file limit (you can keep 5 if you want)
 
-BASE_DIR = os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", ".")
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{os.path.join(BASE_DIR, 'gold.db')}"
-
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///gold.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-app.config["UPLOAD_FOLDER"] = os.path.join(BASE_DIR, "uploads")
-
+app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "uploads")
 app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024 # 25 MB
 
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)

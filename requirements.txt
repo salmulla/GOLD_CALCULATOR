@@ -1,3 +1,9 @@
 Flask
-gunicorn
+Flask-SQLAlchemy
 Flask-Cors
+requests
+beautifulsoup4
+gunicorn
+reportlab
+pytz
+Werkzeug

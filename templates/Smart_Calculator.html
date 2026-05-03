@@ -1,140 +1,275 @@
 {% extends "base.html" %}
-{% block title %}حاسبة الذهب الذكية
-{% endblock %}
+{% block title %}حاسبة الذهب الذكية{% endblock %}
+
 {% block content %}
-  <!-- paste the page body you already have (starting from the <h1> … to the end of the results card) -->
-  <h1 class="mb-3 text-center" style="color: #b0861a; font-weight: bold;">
-      حاسبة الذهب الذكية
-    </h1>
+
+<h1 class="mb-3 text-center" style="color: #b0861a; font-weight: 900;">
+  حاسبة الذهب الذكية
+</h1>
 
 <style>
-.smart-btn {
-  background: linear-gradient(135deg, #c7a144, #b89035);
-  color: #fff;
-  font-weight: 700;
-  font-size: 1.1rem;
-  border: none;
-  border-radius: 14px;
-  padding: 12px 0;
-  letter-spacing: 0.5px;
-  box-shadow: 0 6px 15px rgba(180, 140, 40, 0.3);
-  transition: all 0.3s ease-in-out;
-  position: relative;
-  overflow: hidden;
-}
+  /* Page-only (keep light) */
+  .toggle-wrap{ display:flex; gap:14px; }
+  .btn-gold-solid{
+    border: 0;
+    border-radius: 14px;
+    padding: 14px 12px;
+    font-weight: 900;
+    width: 100%;
+    background: #edc03a;
+    color: #1c2530;
+    box-shadow: 0 10px 18px rgba(0,0,0,.08);
+  }
+  .btn-gold-solid.is-active{
+    background: #896201;
+    color: #fff
+  }
 
-/* animated shine effect */
-.smart-btn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -75%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(120deg, rgba(255,255,255,0.3), rgba(255,255,255,0));
-  transform: skewX(-25deg);
-  transition: 0.7s;
-}
+  .smart-btn{
+    background: linear-gradient(135deg, #c7a144, #b89035);
+    color: #fff;
+    font-weight: 900;
+    font-size: 1.05rem;
+    border: none;
+    padding: 14px;
+    border-radius: 14px;
+    box-shadow: 0 12px 22px rgba(112, 95, 0, 0.1);
+  }
+  .smart-btn:hover{ 
+    color: #5c4200;
+    background: #d9c89d;
+  }
 
-.smart-btn:hover::before {
-  left: 125%;
-}
-
-.smart-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(183, 140, 43, 0.35);
-}
-
-.smart-btn:active {
-  transform: scale(0.98);
-  box-shadow: 0 4px 10px rgba(183, 140, 43, 0.3);
-}
 </style>
 
-    <form method="post" class="card p-3 shadow-sm">
-      <input type="hidden" name="current_mode" value="{{ mode }}">
+<div class="card p-3 shadow-sm">
+  <form method="POST" id="smartForm" novalidate>
+    <input type="hidden" name="current_mode" value="{{ mode }}">
 
-      <div class="toggle-wrap mb-3">
-        <button name="mode" value="buy" type="submit" formnovalidate
-                class="btn btn-gold-solid {{ 'is-active' if mode=='buy' else '' }}">
-          شراء الذهب
-        </button>
-
-        <button name="mode" value="sell" type="submit" formnovalidate
-                class="btn btn-gold-solid {{ 'is-active' if mode=='sell' else '' }}">
-          بيع الذهب
-        </button>
-      </div>
-
-
-      <div class="row g-3">
-        <div class="col-md-3">
-          <label class="form-label">الوزن بالجرام:</label>
-          <input name="weight" type="number" step="0.01" class="form-control"  value="{{ values.weight }}" required>
-        </div>
-        <div class="col-md-3">
-          <label class="form-label">سعر الجرام اليوم:</label>
-          <input name="price_per_g" type="number" step="0.01" class="form-control"  value="{{ values.price_per_g }}" required>
-        </div>
-        <div class="col-md-3">
-          <label class="form-label">معامل العيار :</label>
-          <select id="karat_factor" name="karat_factor" class="form-control">
-            <option value="1.0"    {{ 'selected' if values.karat_factor == '1.0'    else '' }}>عيار 24 (1.0)</option>
-            <option value="0.9167" {{ 'selected' if values.karat_factor == '0.9167' else '' }}>عيار 22 (0.9167)</option>
-            <option value="0.875"  {{ 'selected' if values.karat_factor == '0.875'  else '' }}>عيار 21 (0.875)</option>
-            <option value="0.75"   {{ 'selected' if values.karat_factor == '0.75'   else '' }}>عيار 18 (0.75)</option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <label class="form-label">السعر المعروض (الإجمالي):</label>
-          <input name="offered_total" type="number" step="0.01" class="form-control" value="{{ values.offered_total }}" required>
-        </div>
-
-        {% if mode == 'buy' %}
-        <div class="col-md-3">
-          <label class="form-label">الضريبة (VAT)</label>
-          <input name="vat" type="number" step="0.0001" class="form-control" value="{{ defaults.vat }}">
-        </div>
-        {% else %}
-        <div class="col-md-3">
-          <label class="form-label">هامش شراء المحل (درهم/جم)</label>
-          <input name="margin_per_g" type="number" step="0.01" class="form-control" value="{{ defaults.margin_per_g }}">
-        </div>
-        {% endif %}
-
-      </div>
-
-      <!-- Submit button -->
-      <button type="submit" class="btn w-100 mt-3 smart-btn">
-        احسب
+    <div class="toggle-wrap mb-3">
+      <button name="mode" value="buy" type="submit" formnovalidate
+              class="btn btn-gold-solid {{ 'is-active' if mode=='buy' else '' }}">
+        شراء الذهب
       </button>
 
-    </form>
-
-    {% if result %}
-    <div class="card mt-4 p-3 shadow-sm">
-      <h4 class="mb-3">النتائج</h4>
-      {% if result.mode == 'buy' %}
-        <p>سعر الذهب بدون الضريبة: {{ '%.2f'|format(result.gold_value) }}</p>
-        <p>قيمة الضريبة: {{ '%.2f'|format(result.vat_value) }}</p>
-        <p><strong>سعر الذهب مع الضريبة ({{ (defaults.vat*100)|int }}%): {{ '%.2f'|format(result.fair_price) }}</strong></p>
-        <p>السعر المعروض: {{ '%.2f'|format(result.offered_total) }} </p>
-        <p>ربح البائع المقدر: {{ '%.1f'|format(result.seller_profit) }} ({{ '%.2f'|format(result.profit_pct*100) }}%)</p>
-        <p>سعر التصنيع للجرام: {{ '%.2f'|format(result.making_fee_per_g) }}</p>
-      {% else %}
-        <p>القيمة الفعلية للذهب: {{ '%.2f'|format(result.gold_value) }}</p>
-        <p><strong>السعر العادل لشراء التاجر منك: {{ '%.2f'|format(result.fair_price) }}</strong></p>
-        <p>السعر المعروض: {{ '%.2f'|format(result.offered_total) }} </p>
-        <p>الفرق: {{ '%.2f'|format(result.diff) }}</p>
-      {% endif %}
-
-      {% if result.advice %}
-        <div class="alert alert-{{ result.advice.type }} mt-2">
-          {{ result.advice.text }}
-        </div>
-      {% endif %}
-
+      <button name="mode" value="sell" type="submit" formnovalidate
+              class="btn btn-gold-solid {{ 'is-active' if mode=='sell' else '' }}">
+        بيع الذهب
+      </button>
     </div>
+
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label">الوزن بالجرام</label>
+        <input id="weight" name="weight" type="number" step="0.001" min="0" class="form-control" value="{{ values.weight }}" required>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">سعر الجرام اليوم</label>
+        <input id="price_per_g" name="price_per_g" type="number" step="0.01" min="0" class="form-control" value="{{ values.price_per_g }}" required>
+        <div class="form-hint">بالعملة التي تتعامل بها (مثلاً درهم/جم)</div>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">
+          معامل العيار
+          <i class="bi bi-info-circle" data-bs-toggle="tooltip" title="المعامل يحوّل قيمة الذهب حسب النقاوة. مثال: 21K ≈ 0.875 من 24K"></i>
+        </label>
+        <select id="karat_factor" name="karat_factor" class="form-control">
+          <option value="1.0"    {{ 'selected' if values.karat_factor == '1.0'    else '' }}>عيار 24 (1.0)</option>
+          <option value="0.9167" {{ 'selected' if values.karat_factor == '0.9167' else '' }}>عيار 22 (0.9167)</option>
+          <option value="0.875"  {{ 'selected' if values.karat_factor == '0.875'  else '' }}>عيار 21 (0.875)</option>
+          <option value="0.75"   {{ 'selected' if values.karat_factor == '0.75'   else '' }}>عيار 18 (0.75)</option>
+        </select>
+        <div class="form-hint">يمكنك تغييره حسب القطعة</div>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">
+          السعر المعروض (الإجمالي)
+          <i class="bi bi-info-circle" data-bs-toggle="tooltip" title="المبلغ النهائي الذي عرضه عليك التاجر/المحل"></i>
+        </label>
+        <input id="offered_total" name="offered_total" type="number" step="0.01" min="0" class="form-control" value="{{ values.offered_total }}">
+        <div class="form-hint">اختياري — لكن يعطي تقييمًا أدق</div>
+      </div>
+
+      {% if mode == 'buy' %}
+      <div class="col-md-3">
+        <label class="form-label">
+          الضريبة (VAT)
+          <i class="bi bi-info-circle" data-bs-toggle="tooltip" title="النسبة الافتراضية 5% (اكتب 0.05)"></i>
+        </label>
+        <input id="vat" name="vat" type="number" step="0.001" min="0" class="form-control" value="{{ values.vat }}">
+        <div class="form-hint">مثال: 5% = 0.05</div>
+      </div>
+      {% else %}
+      <div class="col-md-3">
+        <label class="form-label">
+          هامش التاجر (درهم/جم)
+          <i class="bi bi-info-circle" data-bs-toggle="tooltip" title="تقدير خصم التاجر عن السعر الفعلي للذهب عند الشراء منك"></i>
+        </label>
+        <input id="margin_per_g" name="margin_per_g" type="number" step="0.01" min="0" class="form-control" value="{{ values.margin_per_g }}">
+        <div class="form-hint">قيمة مبدئية: 2 درهم/جم (عدّل حسب السوق)</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <button type="submit" class="btn w-100 mt-3 smart-btn">
+      احسب
+    </button>
+  </form>
+
+  {% if result %}
+  <div class="card mt-4 p-3 shadow-sm">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <h4 class="mb-0">النتائج</h4>
+      <div class="d-flex gap-2">
+        <button class="btn-ghost" id="copyResultBtn" type="button"><i class="bi bi-clipboard"></i> نسخ</button>
+      </div>
+    </div>
+
+    <div class="mt-3 calc-breakdown">
+      {% if result.mode == 'buy' %}
+        <div class="rowline"><div class="k">قيمة الذهب (بدون ضريبة)</div><div class="v">{{ '%.2f'|format(result.gold_value) }}</div></div>
+        <div class="rowline"><div class="k">قيمة الضريبة</div><div class="v">{{ '%.2f'|format(result.vat_value) }}</div></div>
+        <div class="rowline"><div class="k">سعر الذهب مع الضريبة ({{ (defaults.vat*100)|int }}%):</div><div class="v">{{ '%.2f'|format(result.fair_price) }}</div></div>
+
+        <div class="rowline"><div class="k">السعر المعروض</div><div class="v">{{ '%.2f'|format(result.offered_total) }}</div></div>
+        <div class="rowline"><div class="k">سعر التصنيع للجرام (درهم/جم)</div><div class="v">{{ '%.2f'|format(result.making_fee_per_g) }}</div></div>
+        <div class="rowline"><div class="k">ربح البائع المقدر</div><div class="v">{{ '%.1f'|format(result.seller_profit) }} ({{ '%.2f'|format(result.profit_pct*100) }}%)</div></div>
+      {% else %}
+        <div class="rowline"><div class="k">القيمة الفعلية للذهب</div><div class="v">{{ '%.2f'|format(result.gold_value) }}</div></div>
+        <div class="rowline"><div class="k">السعر العادل لشراء التاجر منك</div><div class="v">{{ '%.2f'|format(result.fair_price) }}</div></div>
+        <div class="rowline"><div class="k">السعر المعروض</div><div class="v">{{ '%.2f'|format(result.offered_total) }}</div></div>
+        <div class="rowline"><div class="k">الفرق</div><div class="v">{{ '%.2f'|format(result.diff) }}</div></div>
+      {% endif %}
+    </div>
+
+    {% if result.advice %}
+      <div class="alert alert-{{ result.advice.type }} mt-3 mb-0">
+        {{ result.advice.text }}
+      </div>
     {% endif %}
   </div>
+
+  <script>
+    // Copy results
+    (function(){
+      const btn = document.getElementById('copyResultBtn');
+      if(!btn) return;
+      btn.addEventListener('click', async () => {
+        const mode = "{{ 'شراء' if result.mode=='buy' else 'بيع' }}";
+        const lines = [
+          `حاسبة الذهب الذكية - ${mode}`,
+          `الوزن: {{ '%.4f'|format(result.weight) }} جم`,
+          `سعر الجرام: {{ '%.4f'|format(result.price_per_g) }}`,
+          `معامل العيار: {{ '%.4f'|format(result.karat_factor) }}`,
+          {% if result.mode == 'buy' %}
+          `قيمة الذهب: {{ '%.2f'|format(result.gold_value) }}`,
+          `الضريبة: {{ '%.2f'|format(result.vat_value) }}`,
+          `السعر العادل: {{ '%.2f'|format(result.fair_price) }}`,
+          {% else %}
+          `القيمة الفعلية: {{ '%.2f'|format(result.gold_value) }}`,
+          `السعر العادل: {{ '%.2f'|format(result.fair_price) }}`,
+          {% endif %}
+          {% if result.offered_total %}
+          `السعر المعروض: {{ '%.2f'|format(result.offered_total) }}`,
+          {% endif %}
+        ].filter(Boolean).join('\n');
+
+        try{
+          await navigator.clipboard.writeText(lines);
+          btn.innerHTML = '<i class="bi bi-check2"></i> تم النسخ';
+          setTimeout(()=>btn.innerHTML='<i class="bi bi-clipboard"></i> نسخ', 1200);
+        }catch(e){
+          alert('تعذر النسخ على هذا المتصفح.');
+        }
+      });
+    })();
+  </script>
+  {% endif %}
+</div>
+
+<script>
+  // Enable tooltips (Bootstrap)
+  (function(){
+    const tt = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tt.forEach(el => new bootstrap.Tooltip(el));
+  })();
+
+  // Quick fill chips
+  document.querySelectorAll('.chip[data-fill]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const id = chip.getAttribute('data-fill');
+      const v  = chip.getAttribute('data-value');
+      const input = document.getElementById(id);
+      if(input){ input.value = v; input.dispatchEvent(new Event('input')); }
+    });
+  });
+
+  // Save preferences locally
+  const PREF_KEYS = ['karat_factor'];
+  const form = document.getElementById('smartForm');
+  const karatSel = document.getElementById('karat_factor');
+
+  try{
+    const savedK = localStorage.getItem('pref_karat_factor');
+    if(savedK && karatSel && !karatSel.value){ karatSel.value = savedK; }
+  }catch(e){}
+
+  if(karatSel){
+    karatSel.addEventListener('change', () => {
+      try{ localStorage.setItem('pref_karat_factor', karatSel.value); }catch(e){}
+      updatePreview();
+    });
+  }
+
+  // Live preview breakdown
+  const elW = document.getElementById('weight');
+  const elP = document.getElementById('price_per_g');
+  const elT = document.getElementById('offered_total');
+  const elVat = document.getElementById('vat');
+  const pvBox = document.getElementById('previewBox');
+  const pvGold= document.getElementById('pv_gold');
+  const pvVat = document.getElementById('pv_vat');
+  const pvFair= document.getElementById('pv_fair');
+  const pvVatRow = document.getElementById('pv_vat_row');
+
+  function num(x){
+    const v = parseFloat(x);
+    return Number.isFinite(v) ? v : null;
+  }
+  function fmt2(x){
+    return new Intl.NumberFormat('ar-AE', {maximumFractionDigits:2, minimumFractionDigits:2}).format(x);
+  }
+
+  function updatePreview(){
+    const w = num(elW?.value);
+    const p = num(elP?.value);
+    const k = num(karatSel?.value) ?? 1;
+    if(!(w>0) || !(p>0)){
+      pvBox.style.display='none';
+      return;
+    }
+    const gold = w*p*k;
+    let fair = gold;
+    const mode = "{{ mode }}";
+    if(mode === 'buy'){
+      const vat = num(elVat?.value) ?? 0.05;
+      const vatVal = gold*vat;
+      fair = gold + vatVal;
+      pvVatRow.style.display='';
+      pvVat.textContent = fmt2(vatVal);
+    }else{
+      pvVatRow.style.display='none';
+    }
+    pvGold.textContent = fmt2(gold);
+    pvFair.textContent = fmt2(fair);
+    pvBox.style.display='';
+  }
+
+  [elW, elP, elT, elVat].forEach(x => x && x.addEventListener('input', updatePreview));
+  updatePreview();
+</script>
+
 {% endblock %}

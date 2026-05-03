@@ -3,22 +3,16 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <style>
-    /* iOS text sizing + tap highlights */
-    html{-webkit-text-size-adjust:100%}
-    body{-webkit-tap-highlight-color: rgba(0,0,0,0)}
-  </style>
 
   <title>{% block title %}حاسبة الذهب{% endblock %}</title>
 
-  <!-- Bootstrap RTL (better spacing/mirroring for Arabic) -->
+  <!-- Bootstrap RTL -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-
-  <!-- PWA manifest -->
+  <!-- PWA -->
   <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-  <meta name="theme-color" content="#6B5BD5">
+  <meta name="theme-color" content="#f8f9fa">
 
   <!-- iPhone / iPad install -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,519 +23,770 @@
   <!-- Viewport & safe areas -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="format-detection" content="telephone=no">
- 
 
   <style>
-  /* Layout container */
-  .container,
-  .container-fluid { padding-left: 12px; padding-right: 12px; }
+    html{
+      -webkit-text-size-adjust:100%;
+      scroll-behavior:smooth;
+    }
 
-  /* Typography scales (Arabic-friendly) */
-  :root{
-    --fs-xs: clamp(12px, 2.8vw, 13px);
-    --fs-sm: clamp(13px, 3.2vw, 14px);
-    --fs-md: clamp(14px, 3.6vw, 16px);
-    --fs-lg: clamp(18px, 6vw, 24px);
-    --fs-xl: clamp(26px, 8vw, 40px);
+    :root{
+      --fs-xs: clamp(12px, 2.8vw, 13px);
+      --fs-sm: clamp(13px, 3.2vw, 14px);
+      --fs-md: clamp(14px, 3.6vw, 16px);
+      --fs-lg: clamp(18px, 6vw, 24px);
+      --fs-xl: clamp(26px, 8vw, 40px);
 
-    --sat: env(safe-area-inset-top);
-    --sar: env(safe-area-inset-right);
-    --sab: env(safe-area-inset-bottom);
-    --sal: env(safe-area-inset-left);
+      --sat: env(safe-area-inset-top);
+      --sar: env(safe-area-inset-right);
+      --sab: env(safe-area-inset-bottom);
+      --sal: env(safe-area-inset-left);
 
-    --brand-gold:#d4a514;       
-    --brand-gold-cta:#f1c338;  
-    --brand-gold-cta-hover:#dbac19;
-    --brand-blue:#183c5a;      
-    --card-radius:18px;
-    --container-w: 720px;  
-  }
+      --bg: #f6f8fb;
+      --bg-2: #eef3f8;
+      --surface: rgba(255,255,255,0.88);
+      --surface-2: rgba(255,255,255,0.7);
+      --border: rgba(24,60,90,.08);
 
-  body{
-    padding-top: calc(12px + var(--sat));
-    padding-right: 12px;
-    padding-left: 12px;
-    padding-bottom: calc(72px + var(--sab) + 12px);
-    background: #f8f9fa; 
-  }
+      --text: #1f2a37;
+      --muted: #6b7280;
+      --heading: #183c5a;
 
-  /* Tab bar sits above the Home indicator */
-  .app-tabbar{ bottom: env(safe-area-inset-bottom); }
+      --brand-gold: #d4a514;
+      --brand-gold-light: #f1c338;
+      --brand-gold-cta: linear-gradient(135deg, #f6d365 0%, #d4a514 100%);
+      --brand-gold-cta-hover: linear-gradient(135deg, #f9de84 0%, #e0b122 100%);
+      --brand-blue: #183c5a;
 
-  .app-content{
-    flex:1;
-    display:flex;
-    justify-content:center;
-    align-items:flex-start;
-    padding: clamp(16px, 3vw, 32px);
-  }
-  
-  .app-card{
-    overflow: hidden; 
-    width: 100%;
-    max-width: var(--container-w);
-    background:#fff;
-    border-radius: var(--card-radius);
-    box-shadow: 0 10px 30px rgba(0,0,0,.12);
-    padding: clamp(18px, 3.2vw, 28px);
-  }
+      --success: #1da36b;
+      --danger: #ef5a2a;
+      --warning: #f59e0b;
 
-  .app-card .row{
-    margin-right: 0 !important;
-    margin-left: 0 !important;
-    --bs-gutter-x: 12px; 
-  }
+      --card-radius: 24px;
+      --control-radius: 18px;
+      --container-w: 760px;
 
-  .karat-grid{
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0,1fr));
-    gap: 12px;
-    padding-inline: 4px; 
-  }
-  @media (max-width: 420px){
-    .karat-grid{ grid-template-columns: repeat(3, minmax(0,1fr)); }
-  }
+      --shadow-lg: 0 18px 40px rgba(15, 23, 42, .10);
+      --shadow-md: 0 10px 24px rgba(15, 23, 42, .08);
+      --shadow-sm: 0 6px 14px rgba(15, 23, 42, .06);
+    }
 
-  .karat-btn{
-    display: inline-flex; align-items: center; justify-content: center;
-    height: 48px;
-    border-radius: 14px;
-    padding: 0 10px;
-    min-width: 0;          
-    white-space: nowrap;
-  }
+    *{ box-sizing:border-box; }
 
-  .karat-scroll{
-    display: flex; gap: 10px;
-    overflow-x: auto; padding: 4px 6px 10px;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-  }
-  .karat-scroll .karat-chip{
-    flex: 0 0 auto; min-width: 88px; height: 48px;
-    border-radius: 14px; scroll-snap-align: start;
-  }
-  .karat-scroll::-webkit-scrollbar{ display:none; }
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(212,165,20,.10), transparent 24%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+      padding-top: calc(14px + var(--sat));
+      padding-right: 12px;
+      padding-left: 12px;
+      padding-bottom: calc(110px + var(--sab));
+      font-family: "Tajawal", "Segoe UI", Tahoma, Arial, sans-serif;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+    }
 
+    .container,
+    .container-fluid{
+      padding-left: 10px;
+      padding-right: 10px;
+    }
 
-  /* العنوان الذهبي الكبير */
-  .title-gold{
-    color: var(--brand-gold);
-    font-weight: 800;
-    font-size: clamp(26px, 4.2vw, 40px);
-    line-height: 1.2;
-    margin-bottom: 18px;
-    text-align:center;
-  }
+    .app-content{
+      flex:1;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding: clamp(16px, 3vw, 28px);
+    }
 
-  /* عناوين فرعية */
-  .section-title{
-    font-weight: 800;
-    font-size: clamp(18px, 2.6vw, 24px);
-    margin: 18px 0 10px;
-    color: var(--brand-gold);
-  }
+    .app-card,
+    .card{
+      overflow:hidden;
+      width:100%;
+      max-width:var(--container-w);
+      background:var(--surface);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border:1px solid var(--border);
+      border-radius:var(--card-radius);
+      box-shadow:var(--shadow-lg);
+      color:var(--text);
+    }
 
-  .section-title-sub{
-    font-weight: 800;
-    font-size: clamp(18px, 2.6vw, 24px);
-    margin: 18px 0 10px;
-    color: #494848;
-  }
+    .app-card{
+      padding: clamp(18px, 3.2vw, 28px);
+    }
 
-  /* مربع الملاحظة الأزرق الفاتح */
-  .note-box{
-    border: 2px solid #b8d4ea;
-    background: #eaf4fb;
-    border-radius: 14px;
-    padding: 14px 16px;
-    font-weight: 600;
-    color: #0c6cb6;
-  }
+    .card{
+      background: var(--surface);
+    }
 
-  .full-center {
-    display: flex;
-    justify-content: center;   /* توسيط أفقي */
-    align-items: center;       /* توسيط عمودي */
-  }
+    .card-body{
+      color: var(--text);
+    }
 
-  /* زر الشراء */
-  .btn-buy{
-    display:block;
-    width: min(100%, 200px);
-    height: 55px;
-    margin: 24px auto 0;
-    border:none;
-    border-radius: 8px;
-    padding: 14px 20px;
-    font-weight: 600;
-    font-size: 19px;
-    background: var(--brand-gold-cta, #f1c338);
-    color:#2d2323;
-    box-shadow: 0 8px 20px rgba(0,0,0,.12);
-    transition: transform .06s ease, background .2s ease;
-    text-decoration: none !important;
-  }
-  .btn-buy:hover{ background: var(--brand-gold-cta-hover) }
-  .btn-buy:active{ transform: translateY(1px) }
+    .app-card .row{
+      margin-right:0 !important;
+      margin-left:0 !important;
+      --bs-gutter-x: 12px;
+    }
 
-  /* نصوص ثانوية رمادية */
-  .muted{ color:#6c757d }
+    .title-gold{
+      font-weight:900;
+      font-size: clamp(28px, 4.6vw, 42px);
+      line-height:1.15;
+      margin-bottom:18px;
+      text-align:center;
+      background: linear-gradient(135deg, #b88912 0%, #d4a514 35%, #f1c338 70%, #a97b12 100%);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
 
-  /* ضبط القوائم */
-  .app-card ul{ padding-inline-start: 1.2rem }
-  .app-card li{ margin: .35rem 0 }
+    .section-title{
+      font-weight:800;
+      font-size:clamp(18px, 2.8vw, 24px);
+      margin:18px 0 10px;
+      color:var(--heading);
+    }
 
-  /* تحسين العرض الكبير */
-  @media (min-width: 992px){
-    .app-card{ padding: 32px 36px }
-  }
+    .section-title-sub{
+      font-weight:700;
+      font-size:clamp(16px, 2.4vw, 21px);
+      margin:16px 0 10px;
+      color:#4b5563;
+    }
 
-  .skeleton {
-    background: linear-gradient(90deg, rgba(0,0,0,.06) 25%, rgba(0,0,0,.12) 37%, rgba(0,0,0,.06) 63%);
-    background-size: 400% 100%;
-    animation: shimmer 1.2s infinite;
-    border-radius: 6px;
-  }
-  @keyframes shimmer { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
-  .sk-price { width: 160px; height: 36px; }
-  .sk-meta  { height: 14px; width: 240px; }
+    .muted,
+    .text-muted{
+      color:var(--muted) !important;
+    }
 
-  /* ===== Gold button styles ===== */
-  .btn-gold-solid {
-  background-color: #edc03a;
-  color: #2d2323 !important;
-  border: none; border-radius: 8px;
-  padding: 10px 20px;
-  font-weight: 600;
-  transition: background-color .2s ease, color .2s ease;
-}
+    .note-box{
+      border:1px solid rgba(12,108,182,.15);
+      background: #eef7ff;
+      border-radius:16px;
+      padding:14px 16px;
+      font-weight:600;
+      color:#0c6cb6;
+    }
 
-  /* Hover effect */
-  .btn-gold-solid:hover {
-    background-color: #c19014;
-    color: #fff !important;
-  }
-  .btn-gold-solid:active,
-  /* Active button (after click / current mode) */
-  .btn-gold-solid.is-active {
-    background-color: #c19014 !important;  /* darker gold */
-    color: #fff !important;                /* white text */
-    font-weight: 700;
-    box-shadow: inset 0 3px 6px rgba(0,0,0,0.25);
-  }
+    .full-center{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
 
-  .btn-gold-solid.inactive { background-color: #edc03a; color: #fff !important; opacity: 0.5;}
+    .form-label{
+      color:#374151;
+      font-weight:700;
+      margin-bottom:8px;
+    }
 
-  .btn-gold-gradient {
-    background: linear-gradient(180deg, #bf9823 0%, #aa8526 100%);
-    color: #fff !important; border: none; border-radius: 8px;
-    padding: 12px 20px; font-weight: 600; letter-spacing: .2px;
-    box-shadow: none; transition: transform .05s ease, filter .2s ease, box-shadow .2s ease;
-  }
-  .btn-gold-gradient:hover { filter: brightness(0.97); }
-  .btn-gold-gradient:active { transform: translateY(1px); box-shadow: 0 1px 3px rgba(0,0,0,0.18); }
-  .btn-gold:focus { outline: none; box-shadow: 0 0 0 0.2rem rgba(212,160,23,.25); }
+    .form-control,
+    .form-select,
+    input,
+    select,
+    textarea{
+      font-size:16px;
+    }
 
-  .btn-submit { width: 100%; height: 44px; font-size: 1rem; }
-  .mode-btn { opacity: .77; }
-  .mode-btn.is-active { opacity: 1; }
-  .toggle-wrap { display:flex; gap:18px; }
-  .toggle-wrap > .btn { flex:1; }
+    .form-control,
+    .form-select{
+      min-height:58px;
+      border-radius:var(--control-radius);
+      border:1px solid rgba(24,60,90,.10);
+      background:#fff;
+      color:var(--text);
+      padding-inline:16px;
+      box-shadow:none !important;
+    }
 
-  /* ====== Bottom Tab Bar ====== */
-  .app-tabbar{
-    position: fixed; 
-    left: 0; right: 0; bottom: 0;
-    height: calc(66px + env(safe-area-inset-bottom));
-    padding-bottom: env(safe-area-inset-bottom);
-    background: rgba(241,239,239,0.96);
-    backdrop-filter: saturate(180%) blur(10px);
-    border-top: 1px solid rgba(0,0,0,.08);
-    display: grid; 
-    grid-template-columns: 1fr 1.9fr 1.8fr 1fr;
-    column-gap: 0;
-    z-index: 1050;
-  }
-  .app-tabbar a.tab{
-    text-decoration: none; color: #8b8b8b;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 6px; font-size: .78rem;
-  }
-  .app-tabbar a.tab i{ font-size: 1.3rem; }
-  /* Active tab visual effect */
-  .app-tabbar a.tab.active {
-    color: var(--brand-gold);
-    font-weight: 700;
-    position: relative;
-  }
-  .app-tabbar a.tab:active{ transform: translateY(1px); }
+    .form-control::placeholder,
+    input::placeholder,
+    textarea::placeholder{
+      color:#9ca3af;
+      font-size:1rem;
+    }
 
+    .form-control:focus,
+    .form-select:focus{
+      border-color: rgba(212,165,20,.45);
+      background: #fff;
+      color: var(--text);
+      box-shadow: 0 0 0 4px rgba(212,165,20,.10) !important;
+    }
 
-  /* Price header tweaks */
-  .trend-head .price-label{font-size: var(--fs-md)}
+    .form-control:disabled,
+    .form-select:disabled{
+      background: #f3f4f6;
+      color: #92a0b8;
+    }
 
-  .price-row { display:flex; align-items:center; }
-  .price-big{
-    color:#958079;
-    font-weight: 800;
-    font-size: var(--fs-xl);
-    line-height: 1.05;
-    align-items: baseline;
-    gap: .25rem;
-  }
-  .meta-row{row-gap:.25rem}
+    .btn-buy,
+    .btn-gold-gradient,
+    .primary-btn{
+      display:block;
+      width:100%;
+      min-height:56px;
+      border:none;
+      border-radius:18px;
+      padding:14px 20px;
+      font-weight:800;
+      font-size:18px;
+      background: var(--brand-gold-cta);
+      color:#201804 !important;
+      box-shadow: 0 12px 24px rgba(212,165,20,.18);
+      transition: transform .15s ease, filter .2s ease, box-shadow .2s ease;
+      text-decoration:none !important;
+    }
 
-  .price-big.up { color: #1da36b; }   /* green */
-  .price-big.down { color: #ef5a2a; } /* red */
+    .btn-buy:hover,
+    .btn-gold-gradient:hover,
+    .primary-btn:hover{
+      background: var(--brand-gold-cta-hover);
+      filter: brightness(1.02);
+      transform: translateY(-1px);
+    }
 
-  .price-big .currency { font-size: .9em; margin-inline-start:.5rem; }
+    .btn-buy:active,
+    .btn-gold-gradient:active,
+    .primary-btn:active{
+      transform: translateY(1px);
+    }
 
-  .delta { font-weight:600; }
-  .delta .up { color:#1da36b; }         /* أخضر */
-  .delta .down { color:#ef5a2a; }       /* برتقالي/أحمر */
+    .btn-buy{
+      width:min(100%, 260px);
+      margin:24px auto 0;
+    }
 
-  /* Status pill */
-  .status-badge{
-    margin-right: 40px;
-    font-weight:700;
-    padding:.35rem .8rem;
-    border-radius: 999px;
-    font-size: var(--fs-sm);
-    background:#e9f7ef;
-    color:#fff;
-  }
+    .btn-gold-solid{
+      background: #fff;
+      color: var(--brand-blue) !important;
+      border:1px solid rgba(24,60,90,.10);
+      border-radius:16px;
+      padding:12px 18px;
+      font-weight:700;
+      transition: all .2s ease;
+    }
 
-  .status-badge.up{ background:#1da36b;  }
-  .status-badge.down{ background:#ef5a2a; }
-  .status-badge.flat{ background:#6b7280; }
+    .btn-gold-solid:hover{
+      background: #faf7ea;
+      color:var(--brand-blue) !important;
+    }
 
+    .btn-gold-solid.is-active{
+      background: var(--brand-gold-cta);
+      color:#201804 !important;
+      border-color: transparent;
+      box-shadow: 0 8px 18px rgba(212,165,20,.18);
+    }
 
-  .last-update { background:#eef3f6; padding:.25rem .5rem; border-radius:6px; }
-  
-  /* Refresh button sizing for thumb targets (>=44px) */
-  .refresh-btn{
-    width:44px;
-    height:44px;
-    border-radius:999px;
-    display:grid;
-    place-items:center;
-    margin-inline-start: auto;
-  }
+    .btn-gold-solid.inactive{
+      opacity:.65;
+    }
 
-  .refresh-btn i{ font-size:1.2rem; }
-  .refresh-btn:active{ transform: translateX(var(--tx)) scale(.97); }
+    .btn-submit{
+      width:100%;
+      height:56px;
+      font-size:1.05rem;
+    }
 
-/* Floating Zakat FAB — premium look */  
-  .fab-zakat{
-    position: absolute;
-    left: 50%;
-    bottom: calc(env(safe-area-inset-bottom) + 30px);/* Moves the circle up */
-    transform: translateX(-50%) translateZ(0);
-    width: 72px; height: 72px; 
-    border-radius: 999px;
-    text-decoration: none;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-family: system-ui, "IBM Plex Sans Arabic", "GE SS", Tahoma, sans-serif;
-    font-weight: 800; letter-spacing: .25px;
-    isolation: isolate; 
-    z-index: 1100;
-    border: 2px solid rgba(255,255,255,.75);
-    will-change: transform;
+    .toggle-wrap{
+      display:flex;
+      gap:12px;
+    }
 
-    background:
-    radial-gradient(120% 120% at 75% 25%, rgba(255,255,255,.16) 0%, transparent 45%),
-    linear-gradient(145deg, #EAC14E 0%, #5041b3 100%);
+    .toggle-wrap > .btn{
+      flex:1;
+    }
 
-    box-shadow:
-      0 12px 26px rgba(24,16,80,.28),      
-      0 0 0 8px rgba(234,193,78,.35); 
+    .mode-btn{
+      opacity:.82;
+    }
 
-    transition: transform .22s ease, box-shadow .22s ease, filter .22s ease;
-    -webkit-tap-highlight-color: transparent;
-  }
+    .mode-btn.is-active{
+      opacity:1;
+    }
 
-  .fab-zakat::before{
-    content:"";
-    position:absolute; inset:0;
-    border-radius: inherit;
-    background: radial-gradient(120% 70% at 50% 0%, rgba(255,255,255,.75) 0%, rgba(255,255,255,.25) 24%, transparent 55%);
-    mix-blend-mode: soft-light;
-    pointer-events: none;
-  }
+    .karat-grid{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap:12px;
+      padding-inline:4px;
+    }
 
-  .fab-zakat::after{
-    content:"";
-    position:absolute; inset:-2px;
-    border-radius: inherit;
-    box-shadow: 0 0 0 0 rgba(234,193,78,.0);
-    pointer-events: none;
-    transition: box-shadow .22s ease;
-  }
+    @media (max-width:420px){
+      .karat-grid{
+        grid-template-columns: repeat(3, minmax(0,1fr));
+      }
+    }
 
-  .fab-zakat:hover{
-    transform: translateX(-50%) translateY(-2px) scale(1.02);
-    box-shadow:
-      0 18px 34px rgba(24,16,80,.32),
-      0 0 0 10px rgba(234,193,78,.45);
-  }
-  .fab-zakat:active{
-    transform: translateX(-50%) scale(.98);
-    filter: brightness(.98);
-    color: #a88f44; /* slightly brighter gold */
-  }
+    .karat-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:0;
+      height:48px;
+      border-radius:14px;
+      padding:0 10px;
+      white-space:nowrap;
+    }
 
-  .fab-zakat .fab-text{
-    position: relative;
-    z-index: 1;
-    font-size: 18px;   /* shows "زكاة" inside the circle */
-    line-height: 1;
-    text-shadow: 0 1px 2px rgba(0,0,0,.22);
-    user-select: none;
-    color: #f4e5c4; 
-  }
+    .karat-scroll{
+      display:flex;
+      gap:10px;
+      overflow-x:auto;
+      padding:4px 6px 10px;
+      scroll-snap-type:x mandatory;
+      -webkit-overflow-scrolling:touch;
+    }
 
-  .fab-zakat .fab-icon{
-    position: absolute; inset:0; margin:auto;
-    width: 62%; height: 62%;
-    opacity: .18;
-    color: #fff;
-    pointer-events: none;
-  }
+    .karat-scroll .karat-chip{
+      flex:0 0 auto;
+      min-width:88px;
+      height:48px;
+      border-radius:14px;
+      scroll-snap-align:start;
+    }
 
-  /* Active state (when on /zakat) */
-  .app-tabbar a.fab-zakat.active{
-    filter: brightness(1.05);
-    box-shadow:
-      0 20px 36px rgba(24,16,80,.36),
-      0 0 0 12px rgba(234,193,78,.5);
-  }
+    .karat-scroll::-webkit-scrollbar{
+      display:none;
+    }
 
-  input::placeholder {
-    font-size: 1.05rem;     
-    color: #6c757d;        
-  }
+    .skeleton{
+      background: linear-gradient(90deg, rgba(0,0,0,.05) 25%, rgba(0,0,0,.10) 37%, rgba(0,0,0,.05) 63%);
+      background-size:400% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius:8px;
+    }
 
-  #grams::placeholder {
-    font-size: 1.05rem;
-    letter-spacing: 0.2px;  
-  }
+    @keyframes shimmer{
+      0%{background-position:100% 0}
+      100%{background-position:-100% 0}
+    }
 
-/* Chart card: responsive height */
-#goldChart{
-  width:100% !important; height:100% !important;
-}
-.chart-card{
-  height: min(62vh, 520px);   /* phone: uses viewport; desktop caps at 520px */
-}
+    .sk-price{ width:160px; height:36px; }
+    .sk-meta{ height:14px; width:240px; }
 
-/* Number inputs on iOS shouldn’t zoom */
-input, select, textarea { font-size: 16px; }
+    .trend-head .price-label{
+      font-size:var(--fs-md);
+      color:#4b5563;
+    }
 
+    .price-row{
+      display:flex;
+      align-items:center;
+    }
 
-@keyframes zakati-pulse{
-  0%   { box-shadow: 0 12px 26px rgba(24,16,80,.28), 0 0 0 6px rgba(234,193,78,.35); }
-  70%  { box-shadow: 0 12px 26px rgba(24,16,80,.28), 0 0 0 14px rgba(234,193,78,0.0); }
-  100% { box-shadow: 0 12px 26px rgba(24,16,80,.28), 0 0 0 6px rgba(234,193,78,.35); }
-}
-.fab-zakat.pulse{ animation: zakati-pulse 2.2s ease-in-out infinite; }
+    .price-big{
+      color:var(--heading);
+      font-weight:900;
+      font-size:var(--fs-xl);
+      line-height:1.05;
+      align-items:baseline;
+      gap:.25rem;
+    }
 
-/* احترام تفضيل تقليل الحركة */
-@media (prefers-reduced-motion: reduce){
-  .fab-zakat, .fab-zakat::after{ transition: none; }
-  .fab-zakat.pulse{ animation: none; }
-}
+    .meta-row{
+      row-gap:.4rem;
+    }
 
-/* ضبط للأجهزة الصغيرة */
-@media (max-width:420px){
-  .fab-zakat{ width: 66px; height: 66px; }
-  .fab-zakat .fab-text{ font-size: 16px; }
-}
+    .price-big.up{ color:var(--success); }
+    .price-big.down{ color:var(--danger); }
 
-/* Mobile stacking */
-@media (max-width: 576px){
-  .receipts-modal .modal-dialog{ height: 96svh; max-height: 96svh; }
-  .modal-dialog.modal-xl { max-width: 100vw !important; }
-  .meta-row{ flex-direction: column; align-items:flex-start }
-}
+    .price-big .currency{
+      font-size:.9em;
+      margin-inline-start:.5rem;
+    }
 
-@media (max-width: 400px){
-  .app-tabbar a.tab span{ font-size: .72rem; }
-  .app-tabbar a.tab i{ font-size: 1.15rem; }
-  .toggle-wrap{ gap:12px; }
-}
+    .delta{
+      font-weight:700;
+    }
 
-@media (max-width: 768px){
-  .meta-row { gap: 0.5rem; }
-  .last-update { margin-top: .85rem; }        
-}
+    .delta .up{ color:var(--success); }
+    .delta .down{ color:var(--danger); }
 
-/* spinner on the refresh icon */
-@keyframes spin { to { transform: rotate(360deg); } }
-.refresh-btn.loading .bi { animation: spin .9s linear infinite; }
-.refresh-btn.loading { opacity: .75; cursor: wait; }
+    .status-badge{
+      margin-right:16px;
+      font-weight:800;
+      padding:.42rem .85rem;
+      border-radius:999px;
+      font-size:var(--fs-sm);
+      color:#fff;
+    }
 
-/* thin indeterminate bar across the card top */
-.loading-bar {
-  position: absolute; inset-inline: 0; top: 0; height: 3px; overflow: hidden;
-  background: rgba(0,0,0,.06);
-}
-.loading-bar::before{
-  content: ""; position: absolute; top: 0; bottom: 0; left: -40%; width: 40%;
-  background: #8c52ff; animation: indeterminate 1s ease-in-out infinite;
-}
-@keyframes indeterminate { from { left: -40%; } to { left: 100%; } }
+    .status-badge.up{ background:var(--success); }
+    .status-badge.down{ background:var(--danger); }
+    .status-badge.flat{ background:#667085; }
 
-/* ======= Nav Item version (same visual behavior as .tab) ======= */
-/* Each nav item (icon + text) */
-.nav-item {
-  flex: 1;
-  text-align: center;
-  font-size: 0.8rem;
-  color: #7d7d7d;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  line-height: 1.2;
-  gap: 3px; /* small space between icon and text */
-  text-decoration: none;
-  transition: color 0.2s ease, transform 0.15s ease;
-}
-/* Icon size */
-.nav-item i {
-  font-size: 1.3rem;
-}
+    .last-update{
+      background: #eef3f6;
+      color:#4b5563 !important;
+      padding:.35rem .65rem;
+      border-radius:10px;
+    }
 
-/* Pressed/tap effect when touched */
-.app-tabbar .nav-item.active,
-.app-tabbar .nav-item.active i,
-.app-tabbar .nav-item.active span {
-  color: var(--brand-gold) !important;
-  font-weight: 700;
-}
-/* Gold underline below active item */
-.app-tabbar .nav-item.active::after{
-  content:""; 
-  position:absolute; 
-  bottom:0; 
-  width:36%; 
-  height:2.5px;
-  background: var(--brand-gold); 
-  border-radius:2px;
-}
+    .refresh-btn{
+      width:44px;
+      height:44px;
+      border:none;
+      border-radius:999px;
+      display:grid;
+      place-items:center;
+      margin-inline-start:auto;
+      background: #fff;
+      color: var(--text);
+      border:1px solid rgba(24,60,90,.10);
+    }
+
+    .refresh-btn i{
+      font-size:1.2rem;
+    }
+
+    .refresh-btn:active{
+      transform: scale(.97);
+    }
+
+    #goldChart{
+      width:100% !important;
+      height:100% !important;
+    }
+
+    .chart-card{
+      height:min(62vh, 520px);
+    }
+
+    .loading-bar{
+      position:absolute;
+      inset-inline:0;
+      top:0;
+      height:3px;
+      overflow:hidden;
+      background: rgba(0,0,0,.05);
+    }
+
+    .loading-bar::before{
+      content:"";
+      position:absolute;
+      top:0;
+      bottom:0;
+      left:-40%;
+      width:40%;
+      background: linear-gradient(90deg, var(--brand-gold-light), var(--brand-gold));
+      animation: indeterminate 1s ease-in-out infinite;
+    }
+
+    @keyframes indeterminate{
+      from{ left:-40%; }
+      to{ left:100%; }
+    }
+
+    @keyframes spin{
+      to{ transform: rotate(360deg); }
+    }
+
+    .refresh-btn.loading .bi{
+      animation: spin .9s linear infinite;
+    }
+
+    .refresh-btn.loading{
+      opacity:.75;
+      cursor:wait;
+    }
+
+    .app-tabbar{
+      position:fixed;
+      left:12px;
+      right:12px;
+      bottom: calc(10px + env(safe-area-inset-bottom));
+      height:78px;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: saturate(180%) blur(16px);
+      -webkit-backdrop-filter: saturate(180%) blur(16px);
+      border:1px solid rgba(24,60,90,.08);
+      border-radius:24px;
+      display:grid;
+      grid-template-columns: 1fr 1.9fr 1.8fr 1fr;
+      column-gap:0;
+      z-index:1050;
+      box-shadow: var(--shadow-lg);
+      overflow:visible;
+    }
+
+    .nav-item,
+    .app-tabbar a.tab{
+      position:relative;
+      text-decoration:none;
+      color:var(--muted);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      font-size:.78rem;
+      line-height:1.2;
+      transition: color .2s ease, transform .15s ease;
+    }
+
+    .nav-item i,
+    .app-tabbar a.tab i{
+      font-size:1.28rem;
+    }
+
+    .app-tabbar .nav-item.active,
+    .app-tabbar .nav-item.active i,
+    .app-tabbar .nav-item.active span{
+      color:var(--brand-gold) !important;
+      font-weight:800;
+    }
+
+    .app-tabbar .nav-item.active::after{
+      content:"";
+      position:absolute;
+      bottom:6px;
+      width:34%;
+      height:2.5px;
+      background: var(--brand-gold);
+      border-radius:2px;
+    }
+
+    .fab-zakat{
+      position:absolute;
+      left:50%;
+      bottom:22px;
+      transform:translateX(-50%) translateZ(0);
+      width:74px;
+      height:74px;
+      border-radius:999px;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-family:system-ui, "IBM Plex Sans Arabic", "GE SS", Tahoma, sans-serif;
+      font-weight:800;
+      letter-spacing:.25px;
+      isolation:isolate;
+      z-index:1100;
+      border:2px solid rgba(255,255,255,.85);
+      will-change:transform;
+      background:
+        radial-gradient(120% 120% at 75% 25%, rgba(255,255,255,.18) 0%, transparent 45%),
+        linear-gradient(145deg, #EAC14E 0%, #5041b3 100%);
+      box-shadow:
+        0 12px 26px rgba(24,16,80,.18),
+        0 0 0 8px rgba(234,193,78,.24);
+      transition: transform .22s ease, box-shadow .22s ease, filter .22s ease;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .fab-zakat::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:inherit;
+      background: radial-gradient(120% 70% at 50% 0%, rgba(255,255,255,.75) 0%, rgba(255,255,255,.25) 24%, transparent 55%);
+      mix-blend-mode: soft-light;
+      pointer-events:none;
+    }
+
+    .fab-zakat:hover{
+      transform:translateX(-50%) translateY(-2px) scale(1.02);
+      box-shadow:
+        0 18px 34px rgba(24,16,80,.24),
+        0 0 0 10px rgba(234,193,78,.30);
+    }
+
+    .fab-zakat:active{
+      transform:translateX(-50%) scale(.98);
+      filter:brightness(.98);
+    }
+
+    .fab-zakat .fab-text{
+      position:relative;
+      z-index:1;
+      font-size:18px;
+      line-height:1;
+      text-shadow:0 1px 2px rgba(0,0,0,.22);
+      user-select:none;
+      color:#f4e5c4;
+    }
+
+    .fab-zakat .fab-icon{
+      position:absolute;
+      inset:0;
+      margin:auto;
+      width:62%;
+      height:62%;
+      opacity:.18;
+      color:#fff;
+      pointer-events:none;
+    }
+
+    .app-tabbar a.fab-zakat.active{
+      filter:brightness(1.05);
+      box-shadow:
+        0 20px 36px rgba(24,16,80,.26),
+        0 0 0 12px rgba(234,193,78,.34);
+    }
+
+    @keyframes zakati-pulse{
+      0%   { box-shadow: 0 12px 26px rgba(24,16,80,.18), 0 0 0 6px rgba(234,193,78,.24); }
+      70%  { box-shadow: 0 12px 26px rgba(24,16,80,.18), 0 0 0 14px rgba(234,193,78,0.0); }
+      100% { box-shadow: 0 12px 26px rgba(24,16,80,.18), 0 0 0 6px rgba(234,193,78,.24); }
+    }
+
+    .fab-zakat.pulse{
+      animation: zakati-pulse 2.2s ease-in-out infinite;
+    }
+
+    .form-hint{
+      font-size:var(--fs-xs);
+      color:var(--muted);
+      margin-top:6px;
+    }
+
+    .calc-breakdown{
+      border:1px solid rgba(24,60,90,.10);
+      border-radius:16px;
+      overflow:hidden;
+      background: rgba(255,255,255,.90);
+    }
+
+    .calc-breakdown .rowline{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 12px;
+      border-top:1px solid rgba(24,60,90,.08);
+      font-size:var(--fs-sm);
+    }
+
+    .calc-breakdown .rowline:first-child{
+      border-top:0;
+    }
+
+    .calc-breakdown .k{
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .calc-breakdown .v{
+      font-weight:900;
+      color:var(--heading);
+    }
+
+    .btn-ghost{
+      border:1px solid rgba(24,60,90,.10);
+      background: #fff;
+      color: var(--text);
+      font-weight:800;
+      border-radius:14px;
+      padding:10px 14px;
+    }
+
+    .btn-ghost:hover{
+      background: rgba(212,165,20,.08);
+      color:#111827;
+    }
+
+    .alert{
+      border:none;
+      border-radius:16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .app-card ul{
+      padding-inline-start:1.2rem;
+    }
+
+    .app-card li{
+      margin:.35rem 0;
+    }
+
+    a{
+      color: inherit;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .fab-zakat{
+        transition:none;
+      }
+      .fab-zakat.pulse{
+        animation:none;
+      }
+    }
+
+    @media (max-width:576px){
+      .receipts-modal .modal-dialog{
+        height:96svh;
+        max-height:96svh;
+      }
+      .modal-dialog.modal-xl{
+        max-width:100vw !important;
+      }
+      .meta-row{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+    }
+
+    @media (max-width:420px){
+      .fab-zakat{
+        width:66px;
+        height:66px;
+      }
+      .fab-zakat .fab-text{
+        font-size:16px;
+      }
+      .toggle-wrap{
+        gap:10px;
+      }
+    }
+
+    @media (max-width:400px){
+      .app-tabbar .nav-item span{
+        font-size:.72rem;
+      }
+      .app-tabbar .nav-item i{
+        font-size:1.12rem;
+      }
+    }
+
+    @media (max-width:768px){
+      .meta-row{
+        gap:.5rem;
+      }
+      .last-update{
+        margin-top:.5rem;
+      }
+    }
+
+    @media (min-width:992px){
+      .app-card{
+        padding:32px 36px;
+      }
+    }
   </style>
 </head>
 
-<body class="bg-light">
+<body>
   <div class="container py-4">
     {% block content %}{% endblock %}
   </div>
 
-  <!-- Bottom Tab Bar (appears on all pages) -->
   <nav class="app-tabbar">
-    <a href="/trend" class="nav-item"><i class="bi bi-graph-up-arrow"></i><span>المؤشر</span></a>
-    <a href="/" class="nav-item"><i class="bi bi-coin"></i>  <span>التبادل الذهبي<br>(تداول)</span></a>
+    <a href="/trend" class="nav-item">
+      <i class="bi bi-graph-up-arrow"></i>
+      <span>المؤشر</span>
+    </a>
+
+    <a href="/" class="nav-item">
+      <i class="bi bi-coin"></i>
+      <span>التبادل الذهبي<br>(تداول)</span>
+    </a>
 
     <a href="/zakat" class="fab-zakat pulse" aria-label="حاسبة زكاة الذهب">
       <svg class="fab-icon" viewBox="0 0 48 48" aria-hidden="true">
@@ -550,52 +795,50 @@ input, select, textarea { font-size: 16px; }
         <path d="M24 16v16M19 21h10M19 27h10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
         <path d="M30 18h6v6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-
       <span class="fab-text">زكاتي</span>
     </a>
 
-    <a href="/basic" class="nav-item"><i class="bi bi-calculator"></i><span>احسب ذهبك الآن </span></a>
-    <a href="/more" class="nav-item"><i class="bi bi-gear"></i><span>المزيد</span></a>
+    <a href="/basic" class="nav-item">
+      <i class="bi bi-calculator"></i>
+      <span>احسب ذهبك الآن</span>
+    </a>
+
+    <a href="/more" class="nav-item">
+      <i class="bi bi-gear"></i>
+      <span>المزيد</span>
+    </a>
   </nav>
 
-  <!-- Auto-highlight active tab (no Jinja needed) -->
-
-
   <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    // current path without trailing slash
-    const current = new URL(location.href).pathname.replace(/\/+$/,'') || '/';
+    document.addEventListener("DOMContentLoaded", () => {
+      const current = new URL(location.href).pathname.replace(/\/+$/,'') || '/';
 
-    // highlight bottom nav items
-    document.querySelectorAll(".app-tabbar a.nav-item").forEach(a => {
-      const href = a.getAttribute("href") || "/";
-      const hrefPath = new URL(href, location.origin).pathname.replace(/\/+$/,'') || '/';
-      a.classList.toggle("active", hrefPath === current);
+      document.querySelectorAll(".app-tabbar a.nav-item").forEach(a => {
+        const href = a.getAttribute("href") || "/";
+        const hrefPath = new URL(href, location.origin).pathname.replace(/\/+$/,'') || '/';
+        a.classList.toggle("active", hrefPath === current);
+      });
+
+      const zakatFab = document.querySelector(".fab-zakat");
+      if (zakatFab) zakatFab.classList.toggle("active", current === "/zakat");
     });
-
-    // (optional) highlight the Zakat FAB when on /zakat
-    const zakatFab = document.querySelector(".fab-zakat");
-    if (zakatFab) zakatFab.classList.toggle("active", current === "/zakat");
-  });
   </script>
-
 
   {% with msgs = get_flashed_messages(with_categories=true) %}
     {% if msgs %}
       <div class="container mt-3" dir="rtl">
-      {% for cat, msg in msgs %}
-        <div class="alert alert-{{ 'warning' if cat=='warn' else cat }} alert-dismissible fade show" role="alert">
-          {{ msg }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
+        {% for cat, msg in msgs %}
+          <div class="alert alert-{{ 'warning' if cat=='warn' else cat }} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
       </div>
     {% endif %}
   {% endwith %}
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+          crossorigin="anonymous"></script>
 </body>
 </html>

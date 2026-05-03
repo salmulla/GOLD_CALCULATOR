@@ -28,7 +28,7 @@ except Exception:
 
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
+app.secret_key = "anysecretkey" 
 CORS(app)
 
 DAYS_AR = {
@@ -84,21 +84,16 @@ def calc_buy_mode(w, p_g, offered_total, karat_factor, vat):
         }
 
     return {
-        "mode": "buy",
-        "weight": w,
-        "price_per_g": p_g,
-        "karat_factor": karat_factor,
-        "vat_rate": vat,
-        "offered_total": offered_total,
-
         "gold_value": gold_value,
         "vat_value": vat_value,
         "fair_price": fair_price_buy,
+        "offered_total": offered_total,
         "diff": diff,
         "seller_profit": seller_profit,
         "profit_pct": profit_pct,
         "making_fee_per_g": making_fee_per_g_calculated,
-        "advice": advice
+        "advice": advice,
+        "mode": "buy"
     }
 
 def calc_sell_mode(w, p_g, offered_total, karat_factor, margin_per_g):
@@ -117,17 +112,12 @@ def calc_sell_mode(w, p_g, offered_total, karat_factor, margin_per_g):
             "type": "success"
         }
     return {
-        "mode": "sell",
-        "weight": w,
-        "price_per_g": p_g,
-        "karat_factor": karat_factor,
-        "margin_per_g": margin_per_g,
-        "offered_total": offered_total,
-
         "gold_value": gold_value,
         "fair_price": fair_price_sell_to_shop,
+        "offered_total": offered_total,
         "diff": diff,
-        "advice": advice
+        "advice": advice,
+        "mode": "sell"
     }
 
 def _compute_change(latest_price: float, previous_price: float):
@@ -218,7 +208,7 @@ def index():
 IGOLD_URL = "https://igold.ae/gold-rate/"
 IGOLD_TTL = 60 # seconds
 _igold_cache = {"at": 0.0, "payload": None}
-IGOLD_SNAPSHOT = Path(BASE_DIR) / "data" / "igold_snapshot.json"
+IGOLD_SNAPSHOT = Path("data/igold_snapshot.json")
 
 CHARTS_URL = "https://charts.igold.ae/api/data?metal=xau&currency=aed&period=live&weight=ounce&purity=1000&_=1760175353677"
 
@@ -386,7 +376,7 @@ def fetch_aed_per_gram_24k() -> float:
     return 250.0
 
 # ---- settings storage ----
-SETTINGS_FILE = Path(BASE_DIR) / "data" / "settings.json"
+SETTINGS_FILE = Path("data/settings.json")
 DEFAULT_SETTINGS = {
     "ui": {"lang": "ar", "theme": "gold", "default_mode": "buy", "unit": "gram", "dark": False},
     "pricing": {"source": "karat", "auto_refresh_sec": 60, "vat": 0.05, "bar_fee": 40.0,
@@ -513,8 +503,7 @@ def api_igold():
     return jsonify(get_igold_rates())
 
 # ---------- Local storage for manual updates ----------
-DATA_DIR = Path(BASE_DIR) / "data"
-
+DATA_DIR = Path("data")
 TREND_FILE = DATA_DIR / "trend_data.json"
 
 def load_trend():
@@ -877,13 +866,9 @@ UPLOAD_DIR = Path("data/uploads")
 ALLOWED_EXTENSIONS = {"png","jpg","jpeg","webp","pdf"}
 MAX_FILE_SIZE_MB = 5 # per-file limit (you can keep 5 if you want)
 
-BASE_DIR = os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", ".")
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{os.path.join(BASE_DIR, 'gold.db')}"
-
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///gold.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-app.config["UPLOAD_FOLDER"] = os.path.join(BASE_DIR, "uploads")
-
+app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "uploads")
 app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024 # 25 MB
 
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
@@ -1373,99 +1358,6 @@ def manifest():
 @app.route("/static/sw.js")
 def sw():
     return send_from_directory("static", "sw.js", mimetype="application/javascript")
-
-
-from io import BytesIO
-from flask import send_file
-
-@app.route("/quote/pdf")
-def quote_pdf():
-    """Generate a simple PDF quote/receipt from query params.
-    Note: PDF labels are English for better rendering reliability."""
-    def to_f(x, d=0.0):
-        try:
-            return float(x) if x not in (None, "") else d
-        except ValueError:
-            return d
-
-    mode = request.args.get("mode", "buy")
-    w    = to_f(request.args.get("w"))
-    p    = to_f(request.args.get("p"))
-    k    = to_f(request.args.get("k"), 1.0)
-    t    = to_f(request.args.get("t"))
-    vat  = to_f(request.args.get("vat"), 0.0)
-    mg   = to_f(request.args.get("mg"), 0.0)
-
-    # compute again (server-trust)
-    if mode == "sell":
-        r = calc_sell_mode(w, p, t, k, mg)
-    else:
-        r = calc_buy_mode(w, p, t, k, vat)
-
-    # Build PDF
-    from reportlab.pdfgen import canvas
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.units import mm
-
-    buf = BytesIO()
-    c = canvas.Canvas(buf, pagesize=A4)
-    width, height = A4
-
-    y = height - 24*mm
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(20*mm, y, "Smart Gold Calculator - Quote")
-    y -= 10*mm
-
-    c.setFont("Helvetica", 10)
-    c.drawString(20*mm, y, f"Mode: {'BUY' if r.get('mode')=='buy' else 'SELL'}")
-    c.drawRightString(width-20*mm, y, f"Generated: {time.strftime('%Y-%m-%d %H:%M')}")
-    y -= 8*mm
-
-    def line(label, value):
-        nonlocal y
-        c.setFont("Helvetica", 10)
-        c.drawString(20*mm, y, label)
-        c.setFont("Helvetica-Bold", 10)
-        c.drawRightString(width-20*mm, y, value)
-        y -= 7*mm
-
-    line("Weight (g)", f"{r.get('weight', 0):.4f}")
-    line("Price per gram", f"{r.get('price_per_g', 0):.4f}")
-    line("Karat factor", f"{r.get('karat_factor', 1.0):.4f}")
-    if r.get("mode") == "buy":
-        line("VAT rate", f"{r.get('vat_rate', 0.0)*100:.2f}%")
-    else:
-        line("Dealer margin / g", f"{r.get('margin_per_g', 0.0):.2f}")
-
-    y -= 4*mm
-    c.line(20*mm, y, width-20*mm, y)
-    y -= 8*mm
-
-    line("Gold value", f"{r.get('gold_value', 0):.2f}")
-    if r.get("mode") == "buy":
-        line("VAT value", f"{r.get('vat_value', 0):.2f}")
-    line("Fair price", f"{r.get('fair_price', 0):.2f}")
-    line("Offered total", f"{r.get('offered_total', 0):.2f}")
-    if r.get("mode") == "buy":
-        line("Making fee / g", f"{r.get('making_fee_per_g', 0):.2f}")
-        line("Seller profit", f"{r.get('seller_profit', 0):.1f} ({r.get('profit_pct', 0)*100:.2f}%)")
-    else:
-        line("Difference", f"{r.get('diff', 0):.2f}")
-
-    y -= 8*mm
-    c.setFont("Helvetica-Oblique", 9)
-    c.drawString(20*mm, y, "Disclaimer: This is an estimate for guidance only. Final pricing may vary by dealer & fees.")
-    y -= 10*mm
-
-    c.setFont("Helvetica", 9)
-    c.drawString(20*mm, 15*mm, "Zakati App • Gold Industry Tools")
-    c.showPage()
-    c.save()
-
-    buf.seek(0)
-    filename = f"gold_quote_{mode}_{int(time.time())}.pdf"
-    return send_file(buf, as_attachment=True, download_name=filename, mimetype="application/pdf")
-
 
 if __name__ == "__main__":
     local_ip = get_local_ip()

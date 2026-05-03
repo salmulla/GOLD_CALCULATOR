@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+{% block title %} Gold Price Trend Index {% endblock %}
+{% block content %}
+
+<h1 class="mb-3 text-center" style="color:#b0861a;font-weight:bold;">
+  مؤشر اتجاه أسعار الذهب
+</h1>
+
+{# ========== PRICE HEADER ========== #}
+{% set delta = (change_pct|default(-0.00)|float) %}
+<div class="card p-3 shadow-sm position-relative mb-3 trend-head" id="liveBox" aria-live="polite">
+  <div id="liveLoading" class="loading-bar d-none" aria-hidden="true"></div>
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="price-label" style="font-size:20px; color:#666;">
+    سعر أونصة الذهب اليوم {{ today_name }}
+    </div>
+
+    <div class="d-flex align-items-center gap-3">
+      <!-- refresh button -->
+      <button type="button" class="refresh-btn" onclick="reloadChart()" aria-label="Refresh">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Skeleton while loading -->
+  <div id="priceSkeleton" class="mt-2">
+    <div class="sk-price skeleton"></div>
+    <div class="mt-3 sk-meta skeleton"></div>
+  </div>
+
+  <!-- Live content (hidden until data arrives) -->
+  <div id="priceWrap" class="mt-2 d-none">
+    <div class="price-big mt-2 ltr-price">
+      <span class="currency" style="font-size:0.6em; margin-inline-end:4px;">$</span>
+      {{ latest_price|default(0.0) }}
+    </div>
+
+    <div class="d-flex meta-row flex-wrap gap-2 justify-content-end">
+      <span class="delta-group d-inline-flex align-items-center flex-nowrap gap-2">
+        <span id="delta5" class="delta" style="opacity:.9; font-size:.95em;" hidden>
+          آخر 5 أيام:
+        </span>
+        <span class="delta-main delta {{ 'up' if (delta|default(0.0)|float) >= 0 else 'down' }}">
+          <bdi dir="ltr">({{ '%+.2f'|format((change_val|default(0.0)|float)) }})</bdi>
+          <bdi dir="ltr">{{ '%+.2f'|format((change_pct|default(0.0)|float)) }}%</bdi>
+        </span>
+
+        <span class="status-badge {{ 'up' if delta|float >= 0 else 'down' }}">
+          {{ 'مرتفع' if delta|float >= 0 else 'منخفض' }}
+        </span>
+      </span>
+
+      <span class="last-update text-muted w-65 text-start">
+        آخر تحديث: {{ last_updated|default('--') }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Error box -->
+  <div id="errorBox" class="alert alert-warning d-none mt-2" role="alert">
+    Couldn’t fetch data right now. Please try again.
+    <button class="btn btn-sm btn-outline-secondary ms-2" onclick="reloadChart()">Refresh</button>
+  </div>
+
+</div>
+
+<div class="card p-3 shadow-sm" style="height: 500px;">
+  <canvas id="goldChart"></canvas>
+</div>
+
+<!-- Chart.js + DataLabels plugin -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<script>
+Chart.register({
+  id: 'xTicksRuler',
+  afterDraw(chart) {
+    const {ctx, chartArea: {bottom}, scales: {x}} = chart;
+
+    ctx.save();
+    ctx.strokeStyle = '#94b6c7';
+    ctx.lineWidth = 1;
+
+    x.ticks.forEach((tick, i) => {
+      const xPos = x.getPixelForTick(i);
+
+      // main long tick
+      ctx.beginPath();
+      ctx.moveTo(xPos, bottom);
+      ctx.lineTo(xPos, bottom + 15);
+      ctx.stroke();
+
+      // short subdivs
+      if (i < x.ticks.length - 1) {
+        const nextX = x.getPixelForTick(i+1);
+        const step = (nextX - xPos) / 4; 
+        for (let j=1;j<4;j++) {
+          const subX = xPos + step * j;
+          ctx.beginPath();
+          ctx.moveTo(subX, bottom);
+          ctx.lineTo(subX, bottom + 8);
+          ctx.stroke();
+        }
+      }
+    });
+    ctx.restore();
+  }  
+});
+
+// --- Watermark (faded text inside chart area) ---
+Chart.register({
+  id: 'watermark',
+  beforeDatasetsDraw(chart, args, pluginOptions) {
+    const { ctx, chartArea } = chart;
+    if (!chartArea) return;
+
+    const {
+      text = 'أسعار الذهب خلال الأشهر الـ6 السابقة',
+      opacity = 0.15,
+      rotate = 0,
+      fontSize = Math.max(15, Math.floor(chartArea.width * 0.035)),
+      fontFamily = 'Tahoma, "Segoe UI", Arial, sans-serif',
+    } = pluginOptions || {};
+
+    const { left, right, top, bottom } = chartArea;
+    const cx = ((left + right) / 2) -50;
+    const cy = bottom-26;
+
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.translate(cx, cy);
+    ctx.rotate((Math.PI / 180) * rotate);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.direction = 'rtl';
+    ctx.font = `700 ${fontSize}px ${fontFamily}`;
+    ctx.fillStyle = '#000';
+    ctx.fillText(text, 0, 0);
+    ctx.restore();
+  }
+});
+
+
+// ==== build the chart first (empty), then fill it from the API ====
+const ctx = document.getElementById('goldChart').getContext('2d');
+const topPad = 48;        // room for the gold pill labels
+
+// Create vertical gradient
+const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+gradient.addColorStop(0, 'rgba(140, 82, 255, 0.4)');   // Top (darker purple)
+gradient.addColorStop(1, 'rgba(140, 82, 255, 0.05)');  // Bottom (very light purple)
+
+const chart = new Chart(ctx, {
+  type: 'line',
+  plugins: [ChartDataLabels, 'xTicksRuler', 'watermark'],
+  data: {
+    labels: [],            // will be set from API
+    datasets: [{
+      data: [],            // will be set from API
+      tension: 0,
+      borderWidth: 3,
+      borderColor: "#8c52ff",  // solid purple line
+      fill: true,
+      backgroundColor: gradient, // gradient purple line
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      pointBackgroundColor: "#8c52ff" // point color (optional)
+    }]
+  }, 
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: { padding: { top: topPad, right: 12, left: 8, bottom: 24 } },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: { label: (c) => `${c.parsed.y.toFixed(2)} $` }
+      },
+      datalabels: {
+        formatter: (v) => v.toFixed(1),
+        anchor: 'end',
+        align: 'top',
+        offset: 8,
+        backgroundColor: '#e6bd52',
+        color: '#2d2323',
+        borderRadius: 999,
+        padding: { top: 4, bottom: 4, left: 10, right: 10 },
+        font: { weight: '600', size: 11, lineHeight: 1.2 },
+        textAlign: 'center',
+        clip: false,
+        clamp: true
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { color:'#7a7a7a' }
+      },
+      y: {
+        beginAtZero: false,
+        grid: { color: 'rgba(0,0,0,0.06)' },
+        ticks: { stepSize: 150, color:'#7a7a7a' }
+        // suggestedMax will be set after we get data
+      }
+    }
+  }
+});
+
+
+async function fetchJSON(url){
+  try{
+    const r = await fetch(url, { cache:'no-store' });
+    if(!r.ok) throw new Error(`${r.status} ${url}`);
+    return await r.json();
+  }catch(e){
+    console.warn('fetchJSON failed:', e);
+    return null;
+  }
+}
+
+// ------------------- CHART (month-end only) -------------------
+// ---------- CHART: load once from /api/gold (USD/oz already) ----------
+async function loadChartOnce(){
+  const j = await fetchJSON('/api/gold?ts=' + Date.now());
+  if(!j) return;                     
+  chart.data.labels = j.months || [];
+  chart.data.datasets[0].data = j.prices || [];  // USD per ounce
+  chart.update();
+}
+
+
+function updateChart(labels, values){
+  chart.data.labels = labels;
+  chart.data.datasets[0].data = values;
+  chart.update();
+}
+
+// ---------- HEADER: tolerant to /api/gold and /api/gold/live ----------
+function signed(v, digits=2){
+  const n = Number(v ?? 0);
+  return (n >= 0 ? `+${n.toFixed(digits)}` : n.toFixed(digits));
+}
+
+function updateHeader(j){
+  // Accept both shapes: (ar-EG / en-US)
+  // /api/gold       -> latest_price, change_val, change_pct, last_updated
+  // /api/gold/live  -> price, change_abs, change_pct, ts
+  const price     = (j.price ?? j.latest_price) || 0;
+  const dayAbs    = (j.change_abs ?? j.change_val ?? 0);
+  const dayPct    = (j.change_pct ?? 0);
+
+  const stamp     = j.ts ? new Date(j.ts).toLocaleString('en-US') 
+                        : (j.last_updated || '--');
+
+  const skeleton  = document.getElementById('priceSkeleton');
+  const priceWrap = document.getElementById('priceWrap');
+  const errorBox  = document.getElementById('errorBox');   
+  // show content, hide skeleton/error
+  skeleton.classList.add('d-none');
+  errorBox.classList.add('d-none');
+  priceWrap.classList.remove('d-none');                  
+                      
+  // pick basis: 5d if available, else daily     
+  const has5d  = (j.change_5d_pct != null && j.change_5d_abs != null);
+  const basisAbs = has5d ? Number(j.change_5d_abs) : Number(dayAbs);
+  const basisPct = has5d ? Number(j.change_5d_pct) : Number(dayPct);
+
+  // price
+  const priceEl = document.querySelector(".price-big");
+  const arrow = basisPct >= 0 ? '▲' : '▼';
+
+  priceEl.innerHTML = 
+      `<span class="currency" style="font-size:0.6em; margin-inline-end:4px;">$</span>${price.toFixed(2)}`;
+  priceEl.classList.toggle("up",  basisAbs >= 0);
+  priceEl.classList.toggle("down", basisAbs < 0);
+
+  // timestamp
+  document.querySelector(".last-update").textContent = `آخر تحديث: ${stamp}`;
+
+  // ONE delta only (uses basis)
+  const deltaEl = document.querySelector(".delta-main");
+  if (!priceEl || !deltaEl) return;
+  if (deltaEl){
+  deltaEl.hidden = !has5d;                
+  deltaEl.classList.toggle("up",  basisPct >= 0);
+  deltaEl.classList.toggle("down", basisPct < 0);
+  deltaEl.innerHTML =
+    `<bdi dir="ltr">(${signed(basisAbs)})</bdi>
+     <bdi dir="ltr">${signed(basisPct)}%</bdi>`;
+}
+
+  // hide/show the 5-day row (5-day comparison)
+  const d5 = document.getElementById('delta5');
+
+  if (d5) {
+    if (has5d) {
+      d5.hidden = true; // hide completely when 5-day is already the main basis
+    } else {
+      d5.hidden = false;
+
+      // choose color class for numbers only
+      const colorClass = basisPct >= 0 ? 'up' : 'down';
+
+      // inject HTML with colored numbers only
+      d5.innerHTML = `
+        آخر 5 أيام:
+        <span class="delta ${colorClass}">
+          <bdi dir="ltr">(${signed(basisAbs)})</bdi>
+          <bdi dir="ltr">${signed(basisPct)}% ${arrow}</bdi>
+        </span>
+      `;
+    }
+  }
+
+
+  // status badge: prefer 5-day pct if available
+  const badge = document.querySelector(".status-badge");
+
+  badge.classList.remove('up','down','flat');
+
+  if (basisPct > 0) { 
+    badge.textContent = "مرتفع";  
+    badge.classList.add('up'); 
+  }
+  else if (basisPct < 0) { 
+    badge.textContent = "منخفض"; 
+    badge.classList.add('down'); 
+  }
+  else { 
+    badge.textContent = "ثابت"; 
+    badge.classList.add('flat'); 
+  } // optional
+}
+
+// ---------- LIVE BOX ONLY: refresh every 60s ---------
+async function refreshLiveBox(){
+  try{
+    let j = await fetchJSON('/api/gold/live?ts=' + Date.now());
+    if(!j){
+      const k = await fetchJSON('/api/gold?ts=' + Date.now());
+      if(k){
+        j = {
+          price: k.latest_price,
+          change_abs: k.change_val,
+          change_pct: k.change_pct,
+          ts: k.last_updated
+        };
+      }
+    }
+    if(j) {
+      updateHeader(j);
+      showError(false);
+    } else {
+      showError(true);
+    }
+  }catch(e){
+    showError(true);
+  }
+}
+
+
+// Refresh button = live box only
+async function reloadChart(){
+  const btn = document.querySelector(".refresh-btn");
+  try{
+    btn.disabled = true;
+    await refreshLiveBox();
+  } finally {
+    setTimeout(()=>btn.disabled=false, 400);
+  }
+}
+window.reloadChart = reloadChart;
+
+// Live box only:
+document.addEventListener('DOMContentLoaded', () => {
+  // show skeleton first
+  const sk = document.getElementById('priceSkeleton');
+  if (sk) sk.classList.remove('d-none');
+
+  refreshLiveBox();         // updates live header (hides skeleton on success)
+  loadChartOnce();          // loads static chart (monthly)
+  setInterval(refreshLiveBox, 60000); // header refresh every minute
+});
+
+function showError(state){
+  const sk = document.getElementById('priceSkeleton');
+  const wrap = document.getElementById('priceWrap');
+  const err = document.getElementById('errorBox');
+  if(state){
+    sk.classList.add('d-none');
+    wrap.classList.add('d-none');
+    err.classList.remove('d-none');
+  } else {
+    err.classList.add('d-none');
+  }
+}
+
+// helper function for delay
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+let refreshLock = false;
+async function reloadChart(){
+  if (refreshLock) return;
+  refreshLock = true;
+
+  const btn   = document.querySelector(".refresh-btn");
+  const sk    = document.getElementById("priceSkeleton");
+  const wrap  = document.getElementById("priceWrap");
+  const err   = document.getElementById("errorBox");
+  const bar   = document.getElementById("liveLoading");
+  const card  = document.getElementById("liveBox");
+
+  // Visual waiting state
+  btn.disabled = true;
+  btn.classList.add("loading");
+  card?.setAttribute("aria-busy","true");
+  bar?.classList.remove("d-none");
+
+  // Show shimmer, hide content/error
+  sk?.classList.remove("d-none");
+  wrap?.classList.add("d-none");
+  err?.classList.add("d-none");
+
+  try {
+    const MIN_SHIMMER_MS = 5000; // 5 second minimum shimmer time
+    await Promise.all([ 
+      refreshLiveBox(), 
+      sleep(MIN_SHIMMER_MS)
+    ]);
+    // updateHeader() will reveal content on success; showError(true) on failure
+  } finally {
+    // Clear waiting visuals
+    setTimeout(() => {
+      btn.classList.remove("loading");
+      btn.disabled = false;
+      bar?.classList.add("d-none");
+      card?.removeAttribute("aria-busy");
+      refreshLock = false;
+    }, 250);
+  }
+}
+
+
+
+</script>
+
+{% endblock %}
